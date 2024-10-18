@@ -23,7 +23,7 @@
 
 use std::{ascii::Char::*, io::Error, sync::Arc, thread::{self, JoinHandle}, time::Duration};
 use semi_e5::{Item, Message, items::*, messages::*};
-use semi_e37::generic::{Client, ConnectionMode, MessageID, ParameterSettings, ProcedureCallbacks, SelectStatus, DeselectStatus};
+use semi_e37::single::{Client, ConnectionMode, MessageID, ParameterSettings};
 
 fn main() {
   test_data();
@@ -45,34 +45,9 @@ fn test_data() {
 fn test_equipment() {
   // Settings are left as default.
   let parameter_settings: ParameterSettings = ParameterSettings::default();
-  // Callbacks emulating proper equipment behavior in HSMS-SS are used.
-  let procedure_callbacks: ProcedureCallbacks = ProcedureCallbacks {
-    select: Arc::new(|session_id, selection_count| -> SelectStatus {
-      // In HSMS-SS, only a single session may be initiated.
-      if selection_count == 0 {
-        // In HSMS-SS, only a Session ID of 0xFFFF is valid.
-        if session_id == 0xFFFF {
-          SelectStatus::Ok
-        } else {
-          SelectStatus::NotReady
-        }
-      } else {
-        SelectStatus::AlreadyActive
-      }
-    }),
-    deselect: Arc::new(|_session_id, _selection_count| -> DeselectStatus {
-      // In HSMS-SS, the Deselect Procedure is forbidden.
-      DeselectStatus::Busy
-    }),
-    separate: Arc::new(|session_id, _selection_count| -> bool {
-      // In HSMS-SS, only a Session ID of 0xFFFF is valid.
-      session_id == 0xFFFF
-    }),
-  };
   // The client is spawned.
   let equipment_client: Arc<Client> = Client::new(
     parameter_settings,
-    procedure_callbacks,
   );
   // The client does not generate valid System Bytes values on its own.
   let mut system: u32 = 0x1000;
@@ -247,8 +222,6 @@ fn test_equipment() {
     // A delay of 1 second is used between successive tests of the Linktest Procedure.
     thread::sleep(Duration::from_secs(1));
   }
-  // The client is instructed to initiate the Separate Procedure, in order to end the connection correctly according to HSMS-SS.
-  println!("equipment_client.separate   : {:?}", equipment_client.separate(MessageID {system, session: 0xFFFF}).join().unwrap());
   // The client is instructed to initiate the Disconnect Procedure.
   println!("equipment_client.disconnect : {:?}", equipment_client.disconnect());
 }
@@ -259,33 +232,13 @@ fn test_host() {
     connect_mode: ConnectionMode::Active,
     ..Default::default()
   };
-  // Callbacks emulating proper host behavior in HSMS-SS are used.
-  let procedure_callbacks: ProcedureCallbacks = ProcedureCallbacks {
-    select: Arc::new(|_session_id, _selection_count| -> SelectStatus {
-      // In HSMS-SS, only the Host may initiate the Select Procedure.
-      SelectStatus::NotReady
-    }),
-    deselect: Arc::new(|_session_id, _selection_count| -> DeselectStatus {
-      // In HSMS-SS, the Deselect Procedure is forbidden.
-      DeselectStatus::Busy
-    }),
-    separate: Arc::new(|session_id, _selection_count| -> bool {
-      // In HSMS-SS, only a Session ID of 0xFFFF is valid.
-      session_id == 0xFFFF
-    }),
-  };
   // The client is spawned.
   let host_client: Arc<Client> = Client::new(
     parameter_settings,
-    procedure_callbacks,
   );
   // The client is instructed to connect to the remote entity and print the socket address it connected to.
   let (socket, _) = host_client.connect("127.0.0.1:5000").unwrap();
   println!("host_client.connect         : {:?}", socket);
-  // A delay of 2 seconds is used prior to initiating the Select Procedure.
-  thread::sleep(Duration::from_millis(2000));
-  // The client is instructed to initiate the Select Procedure and print the results.
-  println!("host_client.select          : {:?}", host_client.select(MessageID{session: 0xFFFF, system: 0}).join().unwrap());
   // The client does not generate valid System Bytes values on its own.
   let mut system: u32 = 1;
   // A loop is used to continuously test the Data Procedure until the connection is dropped.

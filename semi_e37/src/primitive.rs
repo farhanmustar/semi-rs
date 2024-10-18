@@ -268,9 +268,42 @@ impl Client {
   /// [NOT CONNECTED]:        ConnectionState::NotConnected
   /// [CONNECTED]:            ConnectionState::Connected
   pub fn disconnect(
-    self: &Arc<Self>
+    self: &Arc<Self>,
   ) -> Result<(), Error> {
-    // DISCONNECT
+    // SEVER
+    //
+    // Close the TCP/IP connection, if it exists.
+    self.sever()?;
+
+    // MOVE TO NOT CONNECTED
+    //
+    // Now that the TCP connection has been shut down, it is safe to declare
+    // that the connection is no longer live.
+    *self.connection_state.write().unwrap().deref_mut() = ConnectionState::NotConnected;
+
+    // FINISH
+    //
+    // At this point, we are assured that no errors have occurred.
+    Ok(())
+  }
+
+  /// ### SEVER FUNCTION
+  /// 
+  /// Breaks the TCP/IP connection with the Remote Entity. This is used in order
+  /// to allow the connection to be broken symmetrically across the transmit and
+  /// receive sides of the connection without incurring a state transition from
+  /// [CONNECTED] to [NOT CONNECTED] in niche cases.
+  /// 
+  /// This is left as public to the crate only rather than fully public, as it
+  /// is not intended to act as a fully fledged procedure for users of the
+  /// library.
+  /// 
+  /// [NOT CONNECTED]: ConnectionState::NotConnected
+  /// [CONNECTED]:     ConnectionState::Connected
+  pub(crate) fn sever(
+    self: &Arc<Self>,
+  ) -> Result<(), Error> {
+    // SEVER
     //
     // We seek to close an exiting TCP connection, first by inspecting the
     // current connection state.
@@ -279,7 +312,7 @@ impl Client {
       //
       // If no connection is established, there is nothing to do, so the
       // function exits early by returning an error.
-      ConnectionState::NotConnected => return Err(Error::new(ErrorKind::NotConnected, "semi_e37::primitive::Client::disconnect")),
+      ConnectionState::NotConnected => return Err(Error::new(ErrorKind::NotConnected, "semi_e37::primitive::Client::sever")),
 
       // CONNECTED
       //
@@ -296,19 +329,9 @@ impl Client {
         // the receive thread to error out and quit execution if it has not
         // already done so.
         let _result: Result<(), Error> = stream.shutdown(Shutdown::Both);
+        Ok(())
       }
     }
-
-    // MOVE TO NOT CONNECTED
-    //
-    // Now that the TCP connection has been shut down, it is safe to declare
-    // that the connection is no longer live.
-    *self.connection_state.write().unwrap().deref_mut() = ConnectionState::NotConnected;
-
-    // FINISH
-    //
-    // At this point, we are assured that no errors have occurred.
-    Ok(())
   }
 }
 

@@ -165,7 +165,7 @@ pub struct Client {
   /// The current [Selection State].
   /// 
   /// [Selection State]: SelectionState
-  selection_state: Atomic<SelectionState>,
+  pub(crate) selection_state: Atomic<SelectionState>,
 
   /// ### OUTBOX
   /// 
@@ -668,7 +668,10 @@ impl Client {
                 // Here, the select callback is called in order to attain the
                 // correct response to the select procedure.
                 let selection_count = self.selection_count.load(Relaxed);
-                let select_status = (self.procedure_callbacks.select)(rx_message.id.session, selection_count);
+                let select_status = match (self.procedure_callbacks.select)(rx_message.id.session, selection_count) {
+                  Some(select_status) => select_status,
+                  None => break,
+                };
 
                 // CALLBACK SUCCESS
                 //
@@ -778,7 +781,10 @@ impl Client {
                 // There must be at least one active selection for the request
                 // to be valid.
                 if selection_count > 0 {
-                  let deselect_status = (self.procedure_callbacks.deselect)(rx_message.id.session, selection_count);
+                  let deselect_status = match (self.procedure_callbacks.deselect)(rx_message.id.session, selection_count) {
+                    Some(deselect_status) => deselect_status,
+                    None => break,
+                  };
 
                   // CALLBACK SUCCESS
                   //
@@ -906,7 +912,10 @@ impl Client {
             // There must be at least one active selection for the request
             // to be valid.
             if selection_count > 0 {
-              let decrement: bool = (self.procedure_callbacks.separate)(rx_message.id.session, selection_count);
+              let decrement: bool = match (self.procedure_callbacks.separate)(rx_message.id.session, selection_count) {
+                Some(decrement) => decrement,
+                None => break,
+              };
 
               // CALLBACK SUCCESS
               //
@@ -1016,6 +1025,13 @@ impl Client {
         }
       }
     }
+
+    // SEVER PRIMITIVE CLIENT
+    //
+    // Prevent further TCP/IP communication, in the case that this code is
+    // reached due to one of the procedure callbacks returning None, or some
+    // other similar edge case.
+    let _ = self.primitive_client.sever();
 
     // CLEAR OUTBOX
     //
@@ -2153,6 +2169,8 @@ pub struct ProcedureCallbacks {
   /// a [Select Status] of [COMMUNICATION ESTABLISHED] is provided, the
   /// Selection Count will be incremented by one.
   /// 
+  /// If an option of None is provided, the client disconnects.
+  /// 
   /// [Client]:                    Client
   /// [Select Procedure]:          Client::select
   /// [Session ID]:                MessageID::session
@@ -2160,7 +2178,7 @@ pub struct ProcedureCallbacks {
   /// [Select.rsp]:                MessageContents::SelectResponse
   /// [Select Status]:             SelectStatus
   /// [COMMUNICATION ESTABLISHED]: SelectStatus::Ok
-  pub select: Arc<dyn Fn(u16, u16) -> SelectStatus + Sync + Send>,
+  pub select: Arc<dyn Fn(u16, u16) -> Option<SelectStatus> + Sync + Send>,
 
   /// ### DESELECT PROCEDURE CALLBACK
   /// **Based on SEMI E37-1109§7.7.2**
@@ -2177,6 +2195,8 @@ pub struct ProcedureCallbacks {
   /// if a [Deselect Status] of [COMMUNICATION ENDED] is provided, the
   /// Selection Count will be decremented by one.
   /// 
+  /// If an option of None is provided, the client disconnects.
+  /// 
   /// [Client]:              Client
   /// [Deselect Procedure]:  Client::deselect
   /// [Session ID]:          MessageID::session
@@ -2184,7 +2204,7 @@ pub struct ProcedureCallbacks {
   /// [Deselect.rsp]:        MessageContents::DeselectResponse
   /// [Deselect Status]:     DeselectStatus
   /// [COMMUNICATION ENDED]: DeselectStatus::Ok
-  pub deselect: Arc<dyn Fn(u16, u16) -> DeselectStatus + Sync + Send>,
+  pub deselect: Arc<dyn Fn(u16, u16) -> Option<DeselectStatus> + Sync + Send>,
 
   /// ### SEPARATE PROCEDURE CALLBACK
   /// **Based on SEMI E37-1109§7.9**
@@ -2194,17 +2214,19 @@ pub struct ProcedureCallbacks {
   /// Count is greater than zero.
   /// 
   /// The [Session ID] of the [Separate.req] and the current Selection Count
-  /// are provided as arguments, and a boolean value indicating whether to
+  /// are provided as arguments, boolean value indicating whether to
   /// decrement the Selection Count must be provided.
   /// 
   /// If a value of true is provided, the Selection Count will be decremented
   /// by one.
   /// 
+  /// If an option of None is provided, the client disconnects.
+  /// 
   /// [Client]:             Client
   /// [Separate Procedure]: Client::separate
   /// [Session ID]:         MessageID::session
   /// [Separate.req]:       MessageContents::SeparateRequest
-  pub separate: Arc<dyn Fn(u16, u16) -> bool + Sync + Send>,
+  pub separate: Arc<dyn Fn(u16, u16) -> Option<bool> + Sync + Send>,
 }
 
 /// ## MESSAGE
