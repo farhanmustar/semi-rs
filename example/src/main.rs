@@ -25,14 +25,23 @@ use std::{ascii::Char::*, io::Error, sync::Arc, thread::{self, JoinHandle}, time
 use semi_e5::{Item, Message, items::*, messages::*};
 use semi_e37::single::{Client, ConnectionMode, MessageID, ParameterSettings};
 
+/// ## ENTRY POINT
+/// 
+/// Main function of example application.
 fn main() {
+  // Perform data test.
   test_data();
+  // Start equipment and host threads.
   let equipment = thread::spawn(|| {test_equipment();});
   let host = thread::spawn(|| {test_host();});
+  // Join equipment and host threads.
   let _ = equipment.join();
   let _ = host.join();
 }
 
+/// ## TEST: DATA FORMATTING
+/// 
+/// Prints a few quick SECS-II data item formatting tests.
 fn test_data() {
   // Derive a SECS-II item from raw bytes and print it.
   println!("{:?}", Item::try_from(vec![1, 1, 177, 4, 0, 0, 7, 237]));
@@ -42,6 +51,10 @@ fn test_data() {
   println!("{:?}", a.read()[0])
 }
 
+/// ## TEST: EQUIPMENT
+/// 
+/// Runs an HSMS-SS Passive/Equipment endpoint with some built-in responses to
+/// common messages, for about half a minute of actual communication.
 fn test_equipment() {
   // Settings are left as default.
   let parameter_settings: ParameterSettings = ParameterSettings::default();
@@ -226,6 +239,10 @@ fn test_equipment() {
   println!("equipment_client.disconnect : {:?}", equipment_client.disconnect());
 }
 
+/// ## TEST: HOST
+/// 
+/// Runs an HSMS-SS Active/Host endpoint and periodically sends S1F1 until the
+/// other end of the connection hangs up.
 fn test_host() {
   // Settings are left as default, except for the connection mode, which is active for the HSMS-SS Host.
   let parameter_settings: ParameterSettings = ParameterSettings {
