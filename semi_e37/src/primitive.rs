@@ -49,11 +49,22 @@
 //! [Message Header]:       MessageHeader
 //! [Connection State]:     ConnectionState
 
-use std::io::{Error, ErrorKind, Read, Write};
-use std::net::{Shutdown, SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
-use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, RwLock};
-use std::sync::mpsc::{channel, Receiver, Sender};
+pub use crate::Error;
+
+use std::io;
+use std::io::Read;
+use std::io::Write;
+use std::net::Shutdown;
+use std::net::SocketAddr;
+use std::net::TcpListener;
+use std::net::TcpStream;
+use std::ops::Deref;
+use std::ops::DerefMut;
+use std::sync::Arc;
+use std::sync::RwLock;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
 
@@ -153,7 +164,7 @@ impl Client {
   /// [T8]:                crate::generic::ParameterSettings::t8
   pub fn connect(
     self: &Arc<Self>,
-    entity: &str,
+    entity: SocketAddr,
     connection_mode: ConnectionMode,
     t5: Duration,
     t8: Duration,
@@ -162,12 +173,12 @@ impl Client {
     //
     // We attempt here to derive a TCP connection, first by inspecting the
     // current connection state.
-    let (stream, socket) = match self.connection_state.read().unwrap().deref() {
+    let (stream, socket): (TcpStream, SocketAddr) = match self.connection_state.read().unwrap().deref() {
       // CONNECTED
       //
       // Two connections cannot be managed by the same client, so the function
       // exits early by returning an error.
-      ConnectionState::Connected(_) => return Err(Error::new(ErrorKind::AlreadyExists, "semi_e37::primitive::Client::connect")),
+      ConnectionState::Connected(_) => return Err(Error::AlreadyConnected),
 
       // NOT CONNECTED
       //
@@ -187,10 +198,10 @@ impl Client {
           // - Upon recept of a connect request, acknowledge and accept it.
           ConnectionMode::Passive => {
             // Obtain a connection endpoint.
-            let listener: TcpListener = TcpListener::bind(entity)?;
+            let listener: TcpListener = TcpListener::bind(entity).map_err(|io_error| -> Error {Error::IoError(io_error)})?;
             // Listen for an incoming connect request, and proceed to accept
             // and acknowledge it automatically.
-            listener.accept()?
+            listener.accept().map_err(|io_error| -> Error {Error::IoError(io_error)})?
           }
 
           // ACTIVE CONNECTION MODE
@@ -200,13 +211,9 @@ impl Client {
           // - Initiate a connection to a published port.
           // - Wait for the other side to acknowledge and accept the connect.
           ConnectionMode::Active => {
-            // Because the function intakes a string for the address to connect
-            // to, the string must be converted into a socket address; this
-            // operation is fallable.
-            let socket: SocketAddr = entity.to_socket_addrs()?.next().ok_or(Error::new(ErrorKind::AddrNotAvailable, "semi_e37::primitive::Client::connect"))?;
             // Obtain and initiate a connection, with possible timeout.
-            let stream: TcpStream = TcpStream::connect_timeout(&socket, t5)?;
-            (stream, socket)
+            let stream: TcpStream = TcpStream::connect_timeout(&entity, t5).map_err(|io_error| -> Error {Error::IoError(io_error)})?;
+            (stream, entity)
           }
         }
       }
@@ -217,8 +224,8 @@ impl Client {
     // Now that a TCP stream has been connected, it is properly initiated with
     // respect to the protocol by setting the read and write timeouts to the
     // provided T8 value.
-    stream.set_read_timeout(Some(t8))?;
-    stream.set_write_timeout(Some(t8))?;
+    stream.set_read_timeout(Some(t8)).map_err(|io_error| -> Error {Error::IoError(io_error)})?;
+    stream.set_write_timeout(Some(t8)).map_err(|io_error| -> Error {Error::IoError(io_error)})?;
 
     // MOVE TO CONNECTED STATE
     //
@@ -230,7 +237,7 @@ impl Client {
     // CREATE MESSAGE CHANNEL
     //
     // A new channel is created for received messages to be provided through.
-    let (rx_sender, rx_receiver) = channel::<Message>();
+    let (rx_sender, rx_receiver): (Sender<Message>, Receiver<Message>) = channel::<Message>();
 
     // START RECEIVE PROCEDURE
     //
@@ -312,7 +319,7 @@ impl Client {
       //
       // If no connection is established, there is nothing to do, so the
       // function exits early by returning an error.
-      ConnectionState::NotConnected => return Err(Error::new(ErrorKind::NotConnected, "semi_e37::primitive::Client::sever")),
+      ConnectionState::NotConnected => Err(Error::NotConnected),
 
       // CONNECTED
       //
@@ -328,7 +335,7 @@ impl Client {
         // that communications are no longer occuring. This should also cause
         // the receive thread to error out and quit execution if it has not
         // already done so.
-        let _result: Result<(), Error> = stream.shutdown(Shutdown::Both);
+        let _result: Result<(), io::Error> = stream.shutdown(Shutdown::Both);
         Ok(())
       }
     }
@@ -398,23 +405,23 @@ impl Client {
           Err(error) => match error.kind() {
             // No reception was made, due to a timeout error, which is allowed
             // here, so an Ok(None) is returned.
-            ErrorKind::TimedOut => break 'rx Ok(None),
+            io::ErrorKind::TimedOut => break 'rx Ok(None),
             // No reception was made, due to an error which is not acceptable,
             // so an Err is returned.
-            _ => break 'rx Err(error),
+            _ => break 'rx Err(Error::IoError(error)),
           }
         };
         // If 4 bytes for the message length were not properly received, then
         // a timeout has occured at an unacceptable time, so an Err is
         // returned.
-        if length_bytes != 4 {break 'rx Err(Error::from(ErrorKind::TimedOut))}
+        if length_bytes != 4 {break 'rx Err(Error::TimedOut)}
         // Now that we are assured that we have received the length bytes, we
         // we can turn them into an actual value.
         let length: u32 = u32::from_be_bytes(length_buffer);
         // According to the protocol, it is unacceptable for the length bytes
         // to have a value less than 10, as that is required in order to parse
         // the message header. If that is the case, then an Err is returned.
-        if length < 10 {break 'rx Err(Error::from(ErrorKind::InvalidData))}
+        if length < 10 {break 'rx Err(Error::InvalidResponse)}
 
         // RECEIVE MESSAGE HEADER
         //
@@ -427,9 +434,9 @@ impl Client {
           Ok(header_received) => header_received,
           // No reception was made, due to an error which is not acceptable,
           // so an Err is returned.
-          Err(error) => break 'rx Err(error),
+          Err(error) => break 'rx Err(Error::IoError(error)),
         };
-        if header_bytes != 10 {break 'rx Err(Error::from(ErrorKind::TimedOut))}
+        if header_bytes != 10 {break 'rx Err(Error::TimedOut)}
 
         // RECEIVE MESSAGE DATA
         // Receive any further message data past the header.
@@ -444,11 +451,11 @@ impl Client {
             Ok(data_received) => data_received,
             // No reception was made, due to an error which is not acceptable,
             // so an Err is returned.
-            Err(error) => break 'rx Err(error),
+            Err(error) => break 'rx Err(Error::IoError(error)),
           };
           // It is unacceptable to have at this point not received all of the
           // requisite data, so an Err is returned.
-          if data_bytes != data_length as usize {break 'rx Err(Error::from(ErrorKind::TimedOut))}
+          if data_bytes != data_length as usize {break 'rx Err(Error::TimedOut)}
         }
 
         // PRINT DIAGNOSTIC
@@ -508,7 +515,7 @@ impl Client {
           // informed of dropped communications, so shutdown is called in order
           // for the transmit function to throw an error the next time it
           // transmits, without having to reach a timeout.
-          let _result: Result<(), Error> = stream_immutable.shutdown(Shutdown::Both);
+          let _result: Result<(), io::Error> = stream_immutable.shutdown(Shutdown::Both);
           break
         }
       }
@@ -541,7 +548,7 @@ impl Client {
       // If a valid connection has not been established, it is impossible to
       // transmit the message, so the function exits early by returning an
       // error.
-      ConnectionState::NotConnected => return Err(Error::new(ErrorKind::NotConnected, "semi_e37::primitive::Client::transmit")),
+      ConnectionState::NotConnected => return Err(Error::NotConnected),
 
       // CONNECTED
       //
@@ -611,7 +618,7 @@ impl Client {
     // fail after a connection has been established, so an error is returned
     // indicating that.
     self.disconnect()?;
-    Err(Error::new(ErrorKind::ConnectionAborted, "semi_e37::primitive::Client::transmit"))
+    Err(Error::Disconnected)
   }
 }
 

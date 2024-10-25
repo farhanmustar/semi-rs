@@ -57,6 +57,7 @@
 //! [Parameter Settings]:               ParameterSettings
 //! [Procedure Callbacks]:              ProcedureCallbacks
 
+pub use crate::Error;
 pub use crate::primitive::ConnectionMode;
 pub use crate::generic::ParameterSettings;
 pub use crate::generic::MessageID;
@@ -68,8 +69,6 @@ use crate::generic::DeselectStatus;
 use crate::generic::ProcedureCallbacks;
 use crate::generic::SelectionState;
 use crate::generic::SelectStatus;
-use std::io::Error;
-use std::io::ErrorKind;
 use std::net::SocketAddr;
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::mpsc::Receiver;
@@ -271,7 +270,7 @@ impl Client {
   /// [T8]:                   ParameterSettings::t8
   pub fn connect(
     self: &Arc<Self>,
-    entity: &str,
+    entity: SocketAddr,
   ) -> Result<(SocketAddr, Receiver<(MessageID, semi_e5::Message)>), Error> {
     // CONNECT GENERIC CLIENT
     //
@@ -497,7 +496,7 @@ impl Client {
       // the Connect and Select states being so closely tied in HSMS-SS, the
       // assumption if this path is reached is that a connection has not been
       // properly established.
-      SelectionState::NotSelected => thread::spawn(|| {Err(Error::from(ErrorKind::NotConnected))}),
+      SelectionState::NotSelected => thread::spawn(|| {Err(Error::NotConnected)}),
 
       // SELECTED
       //

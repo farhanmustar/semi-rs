@@ -80,15 +80,21 @@
 //! [Procedure Callbacks]:  ProcedureCallbacks
 
 pub use crate::primitive::ConnectionMode;
+pub use crate::Error;
 
-use crate::{PresentationType, primitive};
+use crate::PresentationType;
+use crate::primitive;
 use std::collections::HashMap;
-use std::io::{Error, ErrorKind};
 use std::net::SocketAddr;
-use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::ops::Deref;
+use std::ops::DerefMut;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::MutexGuard;
 use std::sync::atomic::Ordering::Relaxed;
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -251,7 +257,7 @@ impl Client {
   /// [T8]:                ParameterSettings::t8
   pub fn connect(
     self: &Arc<Self>,
-    entity: &str,
+    entity: SocketAddr,
   ) -> Result<(SocketAddr, Receiver<(MessageID, semi_e5::Message)>), Error> {
     // CONNECT PRIMITIVE CLIENT
     //
@@ -1107,7 +1113,7 @@ impl Client {
           // If the transaction is already found in the outbox due to a
           // conflicting message ID being provided, the function should
           // stop here and the caller informed of the issue.
-          return Err(Error::new(ErrorKind::AlreadyExists, "semi_e37::generic::Client::transmit"));
+          return Err(Error::TransactionOpen);
         }
         if reply_expected {Some(outbox)} else {None}
       };
@@ -1295,9 +1301,7 @@ impl Client {
         //
         // It is inappropriate to send a data message when not in the not
         // selected state, so the procedure is rejected here.
-        //
-        // TODO: Probably want a different error kind here than AlreadyExists.
-        SelectionState::NotSelected => Err(Error::new(ErrorKind::AlreadyExists, "semi_e37::generic::Client::data")),
+        SelectionState::NotSelected => Err(Error::NotSelected),
 
         // SELECTED
         //
@@ -1334,7 +1338,7 @@ impl Client {
                 // TODO: HSMS-SS does NOT disconnect when the data procedure
                 //       fails, which may require this behavior to be optional?
                 clone.disconnect()?;
-                Err(Error::new(ErrorKind::ConnectionAborted, "semi_e37::generic::Client::data"))
+                Err(Error::Disconnected)
               }
 
               // REPLY NOT EXPECTED
@@ -1358,13 +1362,13 @@ impl Client {
                 //
                 // At this point, the client on the other end has explicitly
                 // rejected the procedure, and no further action may be taken.
-                MessageContents::RejectRequest(_type, _reason) => Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::data")),
+                MessageContents::RejectRequest(_type, _reason) => Err(Error::MessageRejected),
 
                 // UNKNOWN
                 //
                 // A response has been found, but for some reason, it is not of
                 // the expected type, so we cannot do anything further.
-                _ => Err(Error::new(ErrorKind::InvalidData, "semi_e37::generic::Client::data")),
+                _ => Err(Error::InvalidResponse),
               }
             }
           }
@@ -1456,7 +1460,7 @@ impl Client {
           // primitive client is disconnect if it hasn't been already and that
           // the selection state is reset to reflect that.
           clone.disconnect()?;
-          Err(Error::new(ErrorKind::ConnectionAborted, "semi_e37::generic::Client::select"))
+          Err(Error::Disconnected)
         }
 
         // RESPONSE
@@ -1500,7 +1504,7 @@ impl Client {
               // TODO: It may be appropriate to pass the select status
               //       onto the caller in the error payload?
               else {
-                Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::select"))
+                Err(Error::ProcedureRejected)
               }
             }
 
@@ -1508,13 +1512,13 @@ impl Client {
             //
             // At this point, the client on the other end has explicitly
             // rejected the procedure, and no further action may be taken.
-            MessageContents::RejectRequest(_type, _reason) => Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::select")),
+            MessageContents::RejectRequest(_type, _reason) => Err(Error::MessageRejected),
 
             // UNKNOWN
             //
             // A response has been found, but for some reason, it is not of
             // the expected type, so we cannot do anything further.
-            _ => Err(Error::new(ErrorKind::InvalidData, "semi_e37::generic::Client::select")),
+            _ => Err(Error::InvalidResponse),
           }
         }
       }
@@ -1584,7 +1588,7 @@ impl Client {
         //
         // It is inappropriate to send a deselect request when not in the not
         // selected state, so the procedure is rejected here.
-        SelectionState::NotSelected => Err(Error::new(ErrorKind::AlreadyExists, "semi_e37::generic::Client::deselect")),
+        SelectionState::NotSelected => Err(Error::NotSelected),
 
         // SELECTED
         //
@@ -1619,7 +1623,7 @@ impl Client {
               // The proper response to this fatal communications failure is to
               // disconnect the client.
               clone.disconnect()?;
-              Err(Error::new(ErrorKind::ConnectionAborted, "semi_e37::generic::Client::deselect"))
+              Err(Error::Disconnected)
             }
 
             // RESPONSE
@@ -1663,20 +1667,20 @@ impl Client {
                   //
                   // TODO: It may be appropriate to pass the deselect status
                   //       onto the caller in the error payload?
-                  else {Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::deselect"))}
+                  else {Err(Error::ProcedureRejected)}
                 }
 
                 // REJECT REQUEST
                 //
                 // At this point, the client on the other end has explicitly
                 // rejected the procedure, and no further action may be taken.
-                MessageContents::RejectRequest(_type, _reason) => Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::deselect")),
+                MessageContents::RejectRequest(_type, _reason) => Err(Error::MessageRejected),
 
                 // UNKNOWN
                 //
                 // A response has been found, but for some reason, it is not of
                 // the expected type, so we cannot do anything further.
-                _ => Err(Error::new(ErrorKind::InvalidData, "semi_e37::generic::Client::deselect")),
+                _ => Err(Error::InvalidResponse),
               }
             }
           }
@@ -1740,7 +1744,7 @@ impl Client {
         //
         // It is inappropriate to send a separate request when not in the not
         // selected state, so the procedure is rejected here.
-        SelectionState::NotSelected => Err(Error::new(ErrorKind::AlreadyExists, "semi_e37::generic::Client::separate")),
+        SelectionState::NotSelected => Err(Error::NotSelected),
 
         // SELECTED
         //
@@ -1863,7 +1867,7 @@ impl Client {
           // The proper response to this fatal communications failure is to
           // disconnect the client.
           clone.disconnect()?;
-          Err(Error::new(ErrorKind::ConnectionAborted, "semi_e37::generic::Client::linktest"))
+          Err(Error::Disconnected)
         }
 
         // RESPONSE
@@ -1880,13 +1884,13 @@ impl Client {
             //
             // At this point, the client on the other end has explicitly
             // rejected the procedure, and no further action may be taken.
-            MessageContents::RejectRequest(_type, _reason) => Err(Error::new(ErrorKind::PermissionDenied, "semi_e37::generic::Client::linktest")),
+            MessageContents::RejectRequest(_type, _reason) => Err(Error::MessageRejected),
 
             // UNKNOWN
             //
             // A response has been found, but for some reason, it is not of
             // the expected type, so we cannot do anything further.
-            _ => Err(Error::new(ErrorKind::InvalidData, "semi_e37::generic::Client::linktest")),
+            _ => Err(Error::InvalidResponse),
           }
         }
       }

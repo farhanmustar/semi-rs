@@ -21,9 +21,9 @@
 #![feature(ascii_char)]
 #![feature(ascii_char_variants)]
 
-use std::{ascii::Char::*, io::Error, sync::Arc, thread::{self, JoinHandle}, time::Duration};
+use std::{ascii::Char::*, net::SocketAddr, str::FromStr, sync::Arc, thread::{self, JoinHandle}, time::Duration};
 use semi_e5::{Item, Message, items::*, messages::*};
-use semi_e37::single::{Client, ConnectionMode, MessageID, ParameterSettings};
+use semi_e37::single::{Client, ConnectionMode, Error, MessageID, ParameterSettings};
 
 /// ## ENTRY POINT
 /// 
@@ -32,8 +32,8 @@ fn main() {
   // Perform data test.
   test_data();
   // Start equipment and host threads.
-  let equipment = thread::spawn(|| {test_equipment();});
-  let host = thread::spawn(|| {test_host();});
+  let equipment: JoinHandle<()> = thread::spawn(|| {test_equipment();});
+  let host: JoinHandle<()> = thread::spawn(|| {test_host();});
   // Join equipment and host threads.
   let _ = equipment.join();
   let _ = host.join();
@@ -72,7 +72,7 @@ fn test_equipment() {
     // If the Linktest Procedure fails, a new connection is formed.
     if link_result.is_err() {
       // The client is instructed to wait for a connection from the remote entity and print the socket address it connected to.
-      let (socket, rx_message) = equipment_client.connect("127.0.0.1:5000").unwrap();
+      let (socket, rx_message) = equipment_client.connect(SocketAddr::from_str("127.0.0.1:5000").unwrap()).unwrap();
       println!("equipment_client.connect    : {:?}", socket);
       // A new thread for responding to Data Messages received by the current connection is spawned.
       let equipment_rx: Arc<Client> = equipment_client.clone();
@@ -254,7 +254,7 @@ fn test_host() {
     parameter_settings,
   );
   // The client is instructed to connect to the remote entity and print the socket address it connected to.
-  let (socket, _) = host_client.connect("127.0.0.1:5000").unwrap();
+  let (socket, _) = host_client.connect(SocketAddr::from_str("127.0.0.1:5000").unwrap()).unwrap();
   println!("host_client.connect         : {:?}", socket);
   // The client does not generate valid System Bytes values on its own.
   let mut system: u32 = 1;

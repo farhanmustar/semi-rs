@@ -72,8 +72,6 @@
 //! [Generic Services]:                 generic
 //! [Single Selected Session Services]: single
 
-#![feature(map_try_insert)]
-
 pub mod primitive;
 pub mod generic;
 pub mod single;
@@ -86,7 +84,6 @@ pub mod single;
 /// Values 1-127 are reserved for Subsidiary Standards.
 /// 
 /// Values 128-255 are reserved and may not be used.
-/// 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PresentationType {
@@ -99,4 +96,69 @@ pub enum PresentationType {
   /// [HSMS Message]: generic::Message
   /// [Data Message]: generic::MessageContents::DataMessage
   SecsII = 0,
+}
+
+/// ## HSMS ERROR
+/// 
+/// Defines the set of possible reasons a function in this library may fail.
+#[derive(Debug)]
+pub enum Error {
+  /// ### I/O ERROR
+  /// 
+  /// An error from the standard library has been encountered in attempting to
+  /// perform the function.
+  IoError(std::io::Error),
+
+  /// ### INVALID RESPONSE
+  /// 
+  /// A response to a sent message was of a form which is not correlated to it,
+  /// or is otherwise malformed in an unhandleable manner.
+  InvalidResponse,
+
+  /// ### TIMED OUT
+  /// 
+  /// The function has timed out waiting for some operation to complete or for a
+  /// response from the other end of the connection.
+  TimedOut,
+
+  /// ### NOT CONNECTED
+  /// 
+  /// The function cannot be performed because no connection has been made.
+  NotConnected,
+
+  /// ### ALREADY CONNECTED
+  /// 
+  /// The function cannot be performed because it is intended to form a
+  /// connection where one already exists.
+  AlreadyConnected,
+
+  /// ### DISCONNECTED
+  /// 
+  /// During the course of attempting to perform the function, a disconnection
+  /// has occurred.
+  Disconnected,
+
+  /// ### NOT SELECTED
+  /// 
+  /// The function cannot be performed because it is not valid before
+  /// handshaking establishing a selected state has occurred.
+  NotSelected,
+
+  /// ### MESSAGE REJECTED
+  /// 
+  /// The client on the other end of the connection received the message and
+  /// rejected it on the basis that it could not understand the message.
+  MessageRejected,
+
+  /// ### PROCEDURE REJECTED
+  /// 
+  /// The client on the other end of the connection received the message and
+  /// rejected the action which was requested to be performed by the message.
+  ProcedureRejected,
+
+  /// ### TRANSACTION OPEN
+  /// 
+  /// The function cannot be performed because there is an outstanding
+  /// transaction which conflicts with the message asked to be sent.
+  TransactionOpen,
 }
