@@ -128,14 +128,9 @@ impl Client {
   /// ### CONNECT PROCEDURE
   /// **Based on SEMI E37-1109§6.3.4-6.3.7**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Connects the [Client] to the Remote Entity.
-  /// 
-  /// --------------------------------------------------------------------------
-  /// 
-  /// The [Connection State] must be in the [NOT CONNECTED] state to use this
-  /// procedure.
-  /// 
-  /// --------------------------------------------------------------------------
   /// 
   /// The [Connect Procedure] has two different behaviors based on the
   /// [Connection Mode] provided to it:
@@ -146,11 +141,25 @@ impl Client {
   ///   and the [Client] initiates the [Connect Procedure] and waits up to the
   ///   time specified by [T5] for the Remote Entity to respond.
   /// 
-  /// --------------------------------------------------------------------------
-  /// 
   /// Upon completion of the [Connect Procedure], the [T8] parameter is set as
   /// the TCP stream's read and write timeout, and the [CONNECTED] state is
   /// entered.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### REQUIREMENTS
+  /// 
+  /// The [Connection State] must be in the [NOT CONNECTED] state to use this
+  /// procedure.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::IoError] - The standard library has returned an error on an
+  ///   operation, not allowing the connection to proceed.
+  /// - [Error::AlreadyConnected] - The [Connection State] is not in the
+  ///   [NOT CONNECTED] state.
   /// 
   /// [Client]:            Client
   /// [Connect Procedure]: Client::connect
@@ -257,17 +266,26 @@ impl Client {
   /// ### DISCONNECT PROCEDURE
   /// **Based on SEMI E37-1109§6.4-6.5**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Disconnects the [Client] from the Remote Entity.
   /// 
+  /// Upon completion of the [Disconnect Procedure], the [NOT CONNECTED] state
+  /// is entered.
+  /// 
   /// --------------------------------------------------------------------------
+  /// 
+  /// #### REQUIREMENTS
   /// 
   /// The [Connection State] must be in the [CONNECTED] state to use this
   /// procedure.
   /// 
   /// --------------------------------------------------------------------------
   /// 
-  /// Upon completion of the [Disconnect Procedure], the [NOT CONNECTED] state
-  /// is entered.
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
   /// 
   /// [Client]:               Client
   /// [Disconnect Procedure]: Client::disconnect
@@ -296,6 +314,8 @@ impl Client {
 
   /// ### SEVER FUNCTION
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Breaks the TCP/IP connection with the Remote Entity. This is used in order
   /// to allow the connection to be broken symmetrically across the transmit and
   /// receive sides of the connection without incurring a state transition from
@@ -305,8 +325,16 @@ impl Client {
   /// is not intended to act as a fully fledged procedure for users of the
   /// library.
   /// 
-  /// [NOT CONNECTED]: ConnectionState::NotConnected
-  /// [CONNECTED]:     ConnectionState::Connected
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
+  /// 
+  /// [Connection State]: ConnectionState
+  /// [NOT CONNECTED]:    ConnectionState::NotConnected
+  /// [CONNECTED]:        ConnectionState::Connected
   pub(crate) fn sever(
     self: &Arc<Self>,
   ) -> Result<(), Error> {
@@ -525,16 +553,31 @@ impl Client {
   /// ### TRANSMIT PROCEDURE
   /// **Based on SEMI E37-1109§7.2**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Serializes a [Message] and transmits it over the TCP/IP connection.
   /// 
   /// --------------------------------------------------------------------------
   /// 
+  /// #### REQUIREMENTS
+  /// 
   /// The [Connection State] must be in the [CONNECTED] state to use this
   /// procedure.
   /// 
-  /// [Message]:          Message
-  /// [Connection State]: ConnectionState
-  /// [CONNECTED]:        ConnectionState::Connected
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
+  /// - [Error::Disconnected] - None or not all of the requested [Message] could
+  ///   be transmitted, indicating that the remote entity has hung up the
+  ///   connection, and forcing the [Disconnect Procedure] to be initiated.
+  /// 
+  /// [Message]:              Message
+  /// [Connection State]:     ConnectionState
+  /// [CONNECTED]:            ConnectionState::Connected
+  /// [Disconnect Procedure]: Client::disconnect
   pub fn transmit(
     self: &Arc<Self>,
     message: Message,

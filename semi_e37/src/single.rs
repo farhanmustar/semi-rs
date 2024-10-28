@@ -225,14 +225,9 @@ impl Client {
   /// ### CONNECT PROCEDURE
   /// **Based on SEMI E37.1-0702§6,7.1**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Connects the [Client] to the Remote Entity.
-  /// 
-  /// --------------------------------------------------------------------------
-  /// 
-  /// The [Connection State] must be in the [NOT CONNECTED] state to use this
-  /// procedure.
-  /// 
-  /// --------------------------------------------------------------------------
   /// 
   /// The [Connect Procedure] has two different behaviors based on the
   /// [Connection Mode] provided to it:
@@ -249,11 +244,27 @@ impl Client {
   ///   complete the [Select Procedure], and initiate the [Disconnect Procedure]
   ///   if it does not complete successfully.
   /// 
-  /// --------------------------------------------------------------------------
-  /// 
   /// Upon completion of the [Connect Procedure], the [T8] parameter is set as
   /// the TCP stream's read and write timeout, and the [CONNECTED] state is
   /// entered.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### REQUIREMENTS
+  /// 
+  /// The [Connection State] must be in the [NOT CONNECTED] state to use this
+  /// procedure.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::IoError] - The standard library has returned an error on an
+  ///   operation, not allowing the connection to proceed.
+  /// - [Error::AlreadyConnected] - The [Connection State] is not in the
+  ///   [NOT CONNECTED] state.
+  /// - [Error::Disconnected] - The connection was established, but an error
+  ///   forcing a disconnect occurred when trying to handshake.
   /// 
   /// [Connection State]:     crate::primitive::ConnectionState
   /// [NOT CONNECTED]:        crate::primitive::ConnectionState::NotConnected
@@ -312,9 +323,9 @@ impl Client {
           // considered a communications failure, and the client must disconnect
           // rather than providing the connection information from the generic
           // client.
-          Err(error) => {
+          Err(_error) => {
             let _ = self.generic_client.disconnect();
-            Err(error)
+            Err(Error::Disconnected)
           }
 
           // SUCCESSFUL
@@ -330,19 +341,28 @@ impl Client {
   /// ### DISCONNECT PROCEDURE
   /// **Based on SEMI E37.1-0702§6,7.6**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Disconnects the [Client] from the Remote Entity.
   /// 
+  /// If the [Client] is in the [SELECTED] state upon initiation of this
+  /// procedure, it will first complete the [Separate Procedure] in order to
+  /// enter the [NOT SELECTED] state, then upon completion of the
+  /// [Disconnect Procedure], the [NOT CONNECTED] state is entered.
+  /// 
   /// --------------------------------------------------------------------------
+  /// 
+  /// #### REQUIREMENTS
   /// 
   /// The [Connection State] must be in the [CONNECTED] state to use this
   /// procedure.
   /// 
   /// --------------------------------------------------------------------------
   /// 
-  /// If the [Client] is in the [SELECTED] state upon initiation of this
-  /// procedure, it will first complete the [Separate Procedure] in order to
-  /// enter the [NOT SELECTED] state, then upon completion of the
-  /// [Disconnect Procedure], the [NOT CONNECTED] state is entered.
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
   /// 
   /// [Connection State]:     crate::primitive::ConnectionState
   /// [NOT CONNECTED]:        crate::primitive::ConnectionState::NotConnected
@@ -394,14 +414,11 @@ impl Client {
   /// ### DATA PROCEDURE
   /// **Based on SEMI E37.1-0702§7.2**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Asks the [Client] to initiate the [Data Procedure] by transmitting a
   /// [Data Message] and waiting for the corresponding response to be received
   /// if it is necessary to do so.
-  /// 
-  /// --------------------------------------------------------------------------
-  /// 
-  /// The [Connection State] must be in the [CONNECTED] state and the
-  /// [Selection State] must be in the [SELECTED] state to use this procedure.
   /// 
   /// When a Response [Data Message] is necessary, the [Client] will wait
   /// to receive it for the amount of time specified by [T3] before it will
@@ -409,6 +426,15 @@ impl Client {
   /// [Disconnect Procedure].
   /// 
   /// --------------------------------------------------------------------------
+  /// 
+  /// #### REQUIREMENTS
+  /// 
+  /// The [Connection State] must be in the [CONNECTED] state and the
+  /// [Selection State] must be in the [SELECTED] state to use this procedure.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### RESPONSE
   /// 
   /// Although not done within this function, a [Client] in the [CONNECTED]
   /// state will respond to having received a [Data Message] based on its
@@ -424,6 +450,25 @@ impl Client {
   ///   or if unsuccessful by transmitting a [Reject.req] message, rejecting
   ///   the [Data Procedure] and completing the [Reject Procedure].
   /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
+  /// - [Error::Disconnected] - None or not all of the requested [Message] could
+  ///   be transmitted, indicating that the remote entity has hung up the
+  ///   connection, or a response was not received when one was required,
+  ///   forcing the [Disconnect Procedure] to be initiated.
+  /// - [Error::TransactionOpen] - A transaction with a conflicting [Message ID]
+  ///   is already waiting for a response.
+  /// - [Error::NotSelected] - The [Selection State] is not in the [SELECTED]
+  ///   state.
+  /// - [Error::MessageRejected] - The remote entity responsed to the [Message]
+  ///   with a [Reject.req].
+  /// - [Error::InvalidResponse] - The remote entity responded to the [Message]
+  ///   with an irrelevant response.
+  /// 
   /// [Connection State]:     crate::primitive::ConnectionState
   /// [CONNECTED]:            crate::primitive::ConnectionState::Connected
   /// [Selection State]:      SelectionState
@@ -435,6 +480,7 @@ impl Client {
   /// [Disconnect Procedure]: Client::disconnect
   /// [Data Procedure]:       Client::data
   /// [Reject Procedure]:     Client::reject
+  /// [Message]:              crate::generic::Message
   /// [Data Message]:         MessageContents::DataMessage
   /// [Reject.req]:           MessageContents::RejectRequest
   pub fn data(
@@ -451,14 +497,11 @@ impl Client {
   /// ### LINKTEST PROCEDURE
   /// **Based on SEMI E37.1-0702§7.4**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Asks the [Client] to initiate the [Linktest Procedure] by transmitting a
   /// [Linktest.req] message and waiting for the corresponding [Linktest.rsp]
   /// message to be received.
-  /// 
-  /// --------------------------------------------------------------------------
-  /// 
-  /// The [Connection State] must be in the [CONNECTED] state, and the
-  /// [Selection State] must be in the [SELECTED] state to use this procedure.
   /// 
   /// The [Client] will wait to receive the [Linktest.rsp] for the amount of
   /// time specified by [T6] before it will consider it a communications
@@ -466,9 +509,35 @@ impl Client {
   /// 
   /// --------------------------------------------------------------------------
   /// 
+  /// #### REQUIREMENTS
+  /// 
+  /// The [Connection State] must be in the [CONNECTED] state, and the
+  /// [Selection State] must be in the [SELECTED] state to use this procedure.
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### RESPONSE
+  /// 
   /// Although not done within this function, a [Client] in the
   /// [CONNECTED] state will respond to having received a [Linktest.req]
   /// message with a [Linktest.rsp], completing the [Linktest Procedure].
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
+  /// - [Error::Disconnected] - None or not all of the requested [Message] could
+  ///   be transmitted, indicating that the remote entity has hung up the
+  ///   connection, or a response was not received when one was required,
+  ///   forcing the [Disconnect Procedure] to be initiated.
+  /// - [Error::TransactionOpen] - A transaction with a conflicting [Message ID]
+  ///   is already waiting for a response.
+  /// - [Error::MessageRejected] - The remote entity responsed to the [Message]
+  ///   with a [Reject.req].
+  /// - [Error::InvalidResponse] - The remote entity responded to the [Message]
+  ///   with an irrelevant response.
   /// 
   /// [Connection State]:     crate::primitive::ConnectionState
   /// [CONNECTED]:            crate::primitive::ConnectionState::Connected
@@ -479,6 +548,7 @@ impl Client {
   /// [NOT SELECTED]:         SelectionState::NotSelected
   /// [SELECTED]:             SelectionState::Selected
   /// [T6]:                   ParameterSettings::t6
+  /// [Message]:              crate::generic::Message
   /// [Linktest.req]:         MessageContents::LinktestRequest
   /// [Linktest.rsp]:         MessageContents::LinktestResponse
   pub fn linktest(
@@ -509,15 +579,21 @@ impl Client {
   /// ### REJECT PROCEDURE
   /// **Based on SEMI E37.1-0702§7.5**
   /// 
+  /// #### BEHAVIOR
+  /// 
   /// Asks the [Client] to complete the [Reject Procedure] by transmitting a
   /// [Reject.req] message.
   /// 
   /// --------------------------------------------------------------------------
   /// 
+  /// #### REQUIREMENTS
+  /// 
   /// The [Connection State] must be in the [CONNECTED] state to use this
   /// procedure.
   /// 
   /// --------------------------------------------------------------------------
+  /// 
+  /// #### RESPONSE
   /// 
   /// Although not done within this function, a [Client] in the [CONNECTED]
   /// state will respond to having received a [Reject.req] by correlating the
@@ -525,6 +601,19 @@ impl Client {
   /// a previously initiated [Data Procedure], [Select Procedure],
   /// [Deselect Procedure], or [Linktest Procedure], and completing the
   /// [Reject Procedure].
+  /// 
+  /// --------------------------------------------------------------------------
+  /// 
+  /// #### ERRORS
+  /// 
+  /// - [Error::NotConnected] - The [Connection State] is not in the [CONNECTED]
+  ///   state.
+  /// - [Error::Disconnected] - None or not all of the requested [Message] could
+  ///   be transmitted, indicating that the remote entity has hung up the
+  ///   connection, or a response was not received when one was required,
+  ///   forcing the [Disconnect Procedure] to be initiated.
+  /// - [Error::TransactionOpen] - A transaction with a conflicting [Message ID]
+  ///   is already waiting for a response.
   /// 
   /// [Connection State]:   crate::primitive::ConnectionState
   /// [CONNECTED]:          crate::primitive::ConnectionState::Connected
@@ -537,6 +626,7 @@ impl Client {
   /// [Selection State]:    SelectionState
   /// [NOT SELECTED]:       SelectionState::NotSelected
   /// [SELECTED]:           SelectionState::Selected
+  /// [Message]:            crate::generic::Message
   /// [Reject.req]:         MessageContents::RejectRequest
   pub fn reject(
     self: &Arc<Self>,

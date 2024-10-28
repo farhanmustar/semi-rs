@@ -76,28 +76,6 @@ pub mod primitive;
 pub mod generic;
 pub mod single;
 
-/// ## PRESENTATION TYPE
-/// **Based on SEMI E37-1109§8.2.6.4**
-/// 
-/// Defines the Presentation Layer content of exchanged information.
-/// 
-/// Values 1-127 are reserved for Subsidiary Standards.
-/// 
-/// Values 128-255 are reserved and may not be used.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum PresentationType {
-  /// ### SECS II ENCODING
-  /// 
-  /// Denotes an [HSMS Message], which is often a [SECS-II] formatted
-  /// [Data Message].
-  /// 
-  /// [SECS-II]:      semi_e5
-  /// [HSMS Message]: generic::Message
-  /// [Data Message]: generic::MessageContents::DataMessage
-  SecsII = 0,
-}
-
 /// ## HSMS ERROR
 /// 
 /// Defines the set of possible reasons a function in this library may fail.
@@ -148,17 +126,42 @@ pub enum Error {
   /// 
   /// The client on the other end of the connection received the message and
   /// rejected it on the basis that it could not understand the message.
-  MessageRejected,
+  MessageRejected(u8, u8),
 
   /// ### PROCEDURE REJECTED
   /// 
   /// The client on the other end of the connection received the message and
   /// rejected the action which was requested to be performed by the message.
-  ProcedureRejected,
+  /// 
+  /// The single-byte code indicating the reason for message rejection is
+  /// provided.
+  ProcedureRejected(u8),
 
   /// ### TRANSACTION OPEN
   /// 
   /// The function cannot be performed because there is an outstanding
   /// transaction which conflicts with the message asked to be sent.
   TransactionOpen,
+}
+
+/// ## PRESENTATION TYPE
+/// **Based on SEMI E37-1109§8.2.6.4**
+/// 
+/// Defines the Presentation Layer content of exchanged information.
+/// 
+/// Values 1-127 are reserved for Subsidiary Standards.
+/// 
+/// Values 128-255 are reserved and may not be used.
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PresentationType {
+  /// ### SECS II ENCODING
+  /// 
+  /// Denotes an [HSMS Message], which is often a [SECS-II] formatted
+  /// [Data Message].
+  /// 
+  /// [SECS-II]:      semi_e5
+  /// [HSMS Message]: generic::Message
+  /// [Data Message]: generic::MessageContents::DataMessage
+  SecsII = 0,
 }
