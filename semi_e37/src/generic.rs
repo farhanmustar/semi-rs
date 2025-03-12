@@ -173,6 +173,18 @@ pub struct Client {
   /// [Selection State]: SelectionState
   pub(crate) selection_state: Atomic<SelectionState>,
 
+  /// ### SELECTION TIMER
+  /// 
+  /// Assists in initiating the [Disconnect Procedure] if the [SELECTED] state
+  /// is not reached before the [T7] timeout has passed since entering the
+  /// [NOT SELECTED] state.
+  /// 
+  /// [Disconnect Procedure]: Client::disconnect
+  /// [NOT SELECTED]:         SelectionState::NotSelected
+  /// [SELECTED]:             SelectionState::Selected
+  /// [T7]:                   ParameterSettings::t7
+  selection_timer: Mutex<Option<SendOnce<()>>>,
+
   /// ### OUTBOX
   /// 
   /// The list of open transactions initiated client-side which have not yet
@@ -214,6 +226,7 @@ impl Client {
       selection_mutex: Default::default(),
       selection_count: Default::default(),
       selection_state: Default::default(),
+      selection_timer: Default::default(),
       outbox: Default::default(),
     })
   }
@@ -294,6 +307,13 @@ impl Client {
     let clone: Arc<Client> = self.clone();
     thread::spawn(move || {clone.receive(rx_receiver, data_sender)});
 
+    // START T7 TIMEOUT
+    //
+    // From this point, since the client is in the Not Selected state, the T7
+    // timeout must start, so that the client will be disconnected if too much
+    // time transpires until the Selected state is entered.
+    self.select_timeout();
+
     // FINISH
     //
     // The caller is now provided with the socket address and receiving end of
@@ -348,11 +368,92 @@ impl Client {
     self.selection_state.store(SelectionState::NotSelected, Relaxed);
     self.selection_count.store(0, Relaxed);
 
+    // DELETE ANY PENDING TIMEOUTS
+    //
+    // Because the T7 timeout is only relevant when connected, ensure it is
+    // wrapped up here.
+    if let Some(sender) = self.selection_timer.lock().unwrap().deref_mut().take() {
+      let _ = sender.send(());
+    }
+
     // FINISH
     //
     // At this point, the only errors which may be relevant to the user come
     // from the primitive client.
     result
+  }
+
+  /// ### SELECT TIMEOUT
+  /// 
+  /// Assists in initiating the [Disconnect Procedure] if the [SELECTED] state
+  /// is not reached before the [T7] timeout has passed since entering the
+  /// [NOT SELECTED] state.
+  /// 
+  /// [Disconnect Procedure]: Client::disconnect
+  /// [NOT SELECTED]:         SelectionState::NotSelected
+  /// [SELECTED]:             SelectionState::Selected
+  /// [T7]:                   ParameterSettings::t7
+  fn select_timeout(
+    self: &Arc<Self>,
+  ) {
+    // SET UP TIMER
+    //
+    // Ensure everything is set up properly for the timer to receive indication
+    // of the select state being entered before proceeding.
+    let receiver: oneshot::Receiver<()> = {
+      // ACQUIRE TIMER
+      //
+      // Lock the timer mutex here so the channel can be placed into it.
+      let mut guard: MutexGuard<'_, Option<SendOnce<()>>> = self.selection_timer.lock().unwrap();
+
+      // DELETE ANY PENDING TIMEOUTS
+      //
+      // In the case that a timeout is already pending, override it.
+      if let Some(sender) = guard.deref_mut().take() {
+        let _ = sender.send(());
+      }
+      
+      // CREATE CHANNEL
+      //
+      // Set up the channel sender and receiver for being informed of selection.
+      let (sender, receiver) = oneshot::channel::<()>();
+      *guard.deref_mut() = Some(sender);
+      receiver
+    };
+
+    // CLONE CLIENT
+    //
+    // Because we want this function to run as a separate thread, for the
+    // caller to possibly do other things while waiting for a reply, the client
+    // is cloned here.
+    let clone: Arc<Client> = self.clone();
+
+    // SPAWN THREAD
+    //
+    // Now that the client is cloned, we can spawn a new thread which makes use
+    // of the clone rather than self.
+    thread::spawn(move || {
+      // WAIT FOR SELECTION
+      //
+      // Moving into the selected state is indicated to this thread by the
+      // reception of data by the sender.
+      let selection_result = receiver.recv_timeout(clone.parameter_settings.t7);
+
+      // REMOVE SENDER
+      //
+      // At this point, since nothing can be received, we can remove the sender
+      // from the struct.
+      *clone.selection_timer.lock().unwrap().deref_mut() = None;
+
+      // HANDLE RESULT
+      //
+      // In the case that an indication of the Selected state was received,
+      // nothing must happen, and this thread can close. In the case that
+      // nothing was received, the disconnect procedure must be initiated.
+      if let Err(_) = selection_result {
+        let _ = clone.disconnect();
+      }
+    });
   }
 }
 
@@ -702,13 +803,21 @@ impl Client {
                 // If the callback reports that the select procedure may be
                 // completed without error, we must handle that.
                 if let SelectStatus::Ok = select_status {
+                  // STOP TIMEOUT TIMER
+                  //
+                  // Because we were able to establish a selection, stop the T7
+                  // timer from disconnecting the client.
+                  if let Some(sender) = self.selection_timer.lock().unwrap().deref_mut().take() {
+                    let _ = sender.send(());
+                  }
+
                   // ADD TO SELECTION COUNT
                   //
                   // At this point, the select procedure has succeeded, so
                   // the selection count should be incremented.
                   self.selection_count.store(selection_count + 1, Relaxed);
 
-                  // MOVE TO NOT SELECTED
+                  // MOVE TO SELECTED
                   //
                   // It doesn't matter if the client is already in the selected
                   // state, overwriting that harms nothing, so we can set that
@@ -827,6 +936,14 @@ impl Client {
                     // time to move to the not selected state.
                     if self.selection_count.load(Relaxed) == 0 {
                       self.selection_state.store(SelectionState::NotSelected, Relaxed);
+
+                      // START T7 TIMEOUT
+                      //
+                      // From this point, since the client is in the Not
+                      // Selected state, the T7 timeout must start, so that the
+                      // client will be disconnected if too much time transpires
+                      // until the Selected state is entered.
+                      self.select_timeout();
                     }
                   }
 
@@ -961,6 +1078,14 @@ impl Client {
                 // to move to the not selected state.
                 if self.selection_count.load(Relaxed) == 0 {
                   self.selection_state.store(SelectionState::NotSelected, Relaxed);
+
+                  // START T7 TIMEOUT
+                  //
+                  // From this point, since the client is in the Not
+                  // Selected state, the T7 timeout must start, so that the
+                  // client will be disconnected if too much time transpires
+                  // until the Selected state is entered.
+                  self.select_timeout();
                 }
               }
             }
@@ -1564,13 +1689,21 @@ impl Client {
               //
               // The other client has allowed the procedure.
               if select_status == SelectStatus::Ok as u8 {
+                // STOP TIMEOUT TIMER
+                //
+                // Because we were able to establish a selection, stop the T7
+                // timer from disconnecting the client.
+                if let Some(sender) = clone.selection_timer.lock().unwrap().deref_mut().take() {
+                  let _ = sender.send(());
+                }
+
                 // ADD TO SELECTION COUNT
                 //
                 // At this point, the select procedure has succeeded, so
                 // the selection count should be incremented.
                 clone.selection_count.store(clone.selection_count.load(Relaxed) + 1, Relaxed);
 
-                // MOVE TO NOT SELECTED
+                // MOVE TO SELECTED
                 //
                 // It doesn't matter if the client is already in the selected
                 // state, overwriting that harms nothing, so we can set that
@@ -1767,6 +1900,14 @@ impl Client {
                     // time to move to the not selected state.
                     if clone.selection_count.load(Relaxed) == 0 {
                       clone.selection_state.store(SelectionState::NotSelected, Relaxed);
+
+                      // START T7 TIMEOUT
+                      //
+                      // From this point, since the client is in the Not
+                      // Selected state, the T7 timeout must start, so that the
+                      // client will be disconnected if too much time transpires
+                      // until the Selected state is entered.
+                      clone.select_timeout();
                     }
 
                     // FINISH
@@ -1920,6 +2061,14 @@ impl Client {
           // move to the not selected state.
           if clone.selection_count.load(Relaxed) == 0 {
             clone.selection_state.store(SelectionState::NotSelected, Relaxed);
+
+            // START T7 TIMEOUT
+            //
+            // From this point, since the client is in the Not
+            // Selected state, the T7 timeout must start, so that the
+            // client will be disconnected if too much time transpires
+            // until the Selected state is entered.
+            clone.select_timeout();
           }
 
           // FINISH

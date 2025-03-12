@@ -492,7 +492,7 @@ impl Client {
         // it prints all messages received. It will be commented out in all
         // published versions.
         /*println!(
-          "rx {: >4X} {: >3}{} {: >3} {: >2X} {: >2X} {: >8X} {:?}",
+          "RX {: >4X} {: >3}{} {: >3} {: >2X} {: >2X} {: >8X} {:?}",
           u16::from_be_bytes(header_buffer[0..2].try_into().unwrap()),
           &header_buffer[2] & 0b0111_1111,
           if (&header_buffer[2] & 0b1000_0000) > 0 {'W'} else {' '},
@@ -627,7 +627,7 @@ impl Client {
         // it prints all messages transmitted. It will be commented out in all
         // published versions.
         /*println!(
-          "tx {: >4X} {: >3}{} {: >3} {: >2X} {: >2X} {: >8X} {:?}",
+          "TX {: >4X} {: >3}{} {: >3} {: >2X} {: >2X} {: >8X} {:?}",
           u16::from_be_bytes(header_buffer[0..2].try_into().unwrap()),
           &header_buffer[2] & 0b0111_1111,
           if (&header_buffer[2] & 0b1000_0000) > 0 {'W'} else {' '},
