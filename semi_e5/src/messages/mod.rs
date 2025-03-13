@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -197,24 +197,7 @@ macro_rules! message_item {
 
 pub mod s1;
 pub mod s2;
-
-/// # STREAM 3: MATERIAL STATUS
-/// **Based on SEMI E5§10.7**
-/// 
-/// ----------------------------------------------------------------------------
-/// 
-/// [Message]s which deal with communicating information and actions related
-/// to material, including carriers and material-in-process,
-/// time-to-completion information, and extraordinary material circumstances.
-/// 
-/// ----------------------------------------------------------------------------
-/// 
-/// ## TO BE DONE
-/// 
-/// - Fill out stream contents
-/// 
-/// [Message]: crate::Message
-pub mod s3 {}
+pub mod s3;
 
 /// # STREAM 4: MATERIAL CONTROL
 /// **Based on SEMI E5§10.8**

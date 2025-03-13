@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -798,8 +798,23 @@ multiformat_vec!{AfterCommandCodes, I2, U2}
 pub struct AcknowledgeAny(pub bool);
 singleformat!{AcknowledgeAny, Bool}
 
-// TODO: ACKC3
-// How to deal with 1-63 being reserved but the rest being open for user values?
+/// ## ACKC3
+/// 
+/// **Acknowledge Code: Stream 3**
+/// 
+/// TODO: How to deal with reserved and non-reserved values?
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F6, S3F8, S3F10
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum AcknowledgeCode3 {
+  Accepted = 0,
+}
+singleformat_enum!{AcknowledgeCode3, Bin}
 
 // TODO: ACKC5
 // How to deal with 1-63 being reserved but the rest being open for user values?
@@ -1158,8 +1173,33 @@ singleformat_vec!{BootProgramData, Bin}
 // TODO: BYTMAX
 // How to deal with negative values being invalid even though you can use signed int?
 
-// TODO: CAACK
-// Usual about reserved/user enum values.
+/// ## CAACK
+/// 
+/// **Carrier Action Acknowledge Code**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F18, S3F20, S3F22, S3F24, S3F26, S3F28, S3F30, S3F32, S3F34
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum CarrierActionAcknowledgeCode {
+  Ok = 0,
+  InvalidCommand = 1,
+  CannotPerformNow = 2,
+  InvalidData = 3,
+  ActionWillBePerformed = 4,
+  InvalidState = 5,
+  PerformedWithErrors = 6,
+}
+singleformat_enum!{CarrierActionAcknowledgeCode, U1}
 
 /// ## CARRIERACTION
 /// 
@@ -1202,8 +1242,40 @@ singleformat_vec!{CarrierID, Ascii}
 pub struct CarrierSpecifier(pub Vec<Char>);
 singleformat_vec!{CarrierSpecifier, Ascii}
 
-// TODO: CATTRDATA
-// Seems like it should mirror ATTRDATA.
+/// ## CATTRDATA
+/// 
+/// **Carrier Attribute Data**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [ATTRDATA].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F17
+/// 
+/// [ATTRDATA]: AttributeValue
+pub enum CarrierAttributeValue {
+  List(Vec<Item>),
+  Bin(Vec<u8>),
+  Bool(Vec<bool>),
+  Ascii(Vec<Char>),
+  I1(Vec<i8>),
+  I2(Vec<i16>),
+  I4(Vec<i32>),
+  I8(Vec<i64>),
+  U1(Vec<u8>),
+  U2(Vec<u16>),
+  U4(Vec<u32>),
+  U8(Vec<u64>),
+  F4(Vec<f32>),
+  F8(Vec<f64>),
+}
+multiformat_vec!{CarrierAttributeValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
 
 /// ## CATTRID
 /// 
@@ -2094,6 +2166,26 @@ pub enum EquipmentConstantValue {
 }
 multiformat_vec!{EquipmentConstantValue, Bin, Bool, Ascii, Jis8, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
 
+/// ## EMID
+/// 
+/// **Equivalent Material ID**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Binary or ASCII, 16 bytes maximum.
+/// 
+/// TODO: Implement Binary.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used by
+/// 
+/// - S3F9
+pub struct EquivalentMaterialID(Vec<Char>);
+singleformat_vec!(EquivalentMaterialID, Ascii, 0..=16, Char);
+
 /// ## ERRCODE
 /// 
 /// Code identifying an error.
@@ -2652,6 +2744,98 @@ singleformat_enum!{VariableLimitDefinitonAcknowledgeCode, Bin}
 pub struct ModelName(Vec<Char>);
 singleformat_vec!{ModelName, Ascii, 0..=20, Char}
 
+/// ## MF
+/// 
+/// Material Format Code
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Either a single-byte enumerated value, or an ASCII formatted unit string.
+/// 
+/// TODO: Implement this variable using the units module.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F2, S3F4, S3F5, S3F7
+/// - S16F3, S16F11, S16F15
+#[derive(Clone, Debug)]
+#[repr(u8)]
+pub enum MaterialFormat {
+  Unit(Vec<Char>) = 0,
+  Wafers          = 1,
+  Cassettes       = 2,
+  Dies            = 3,
+  Boats           = 4,
+  Ingots          = 5,
+  LeadFrames      = 6,
+  Lots            = 7,
+  Magazines       = 8,
+  Packages        = 9,
+  Plates          = 10,
+  Tubes           = 11,
+  WaferFrames     = 12,
+  Carriers        = 13,
+  Substrates      = 14,
+}
+impl From<MaterialFormat> for Item {
+  fn from(value: MaterialFormat) -> Self {
+    match value {
+      MaterialFormat::Unit(vec)   => Item::Ascii(vec),
+      MaterialFormat::Wafers      => Item::Bin(vec![1]),
+      MaterialFormat::Cassettes   => Item::Bin(vec![2]),
+      MaterialFormat::Dies        => Item::Bin(vec![3]),
+      MaterialFormat::Boats       => Item::Bin(vec![4]),
+      MaterialFormat::Ingots      => Item::Bin(vec![5]),
+      MaterialFormat::LeadFrames  => Item::Bin(vec![6]),
+      MaterialFormat::Lots        => Item::Bin(vec![7]),
+      MaterialFormat::Magazines   => Item::Bin(vec![8]),
+      MaterialFormat::Packages    => Item::Bin(vec![9]),
+      MaterialFormat::Plates      => Item::Bin(vec![10]),
+      MaterialFormat::Tubes       => Item::Bin(vec![11]),
+      MaterialFormat::WaferFrames => Item::Bin(vec![12]),
+      MaterialFormat::Carriers    => Item::Bin(vec![13]),
+      MaterialFormat::Substrates  => Item::Bin(vec![14]),
+    }
+  }
+}
+impl TryFrom<Item> for MaterialFormat {
+  type Error = Error;
+
+  fn try_from(item: Item) -> Result<Self, Self::Error> {
+    match item {
+      Item::Ascii(vec) => Ok(MaterialFormat::Unit(vec)),
+      Item::Bin(vec) => {
+        if vec.len() == 1 {
+          match vec[0] {
+            1  => Ok(MaterialFormat::Wafers),
+            2  => Ok(MaterialFormat::Cassettes),
+            3  => Ok(MaterialFormat::Dies),
+            4  => Ok(MaterialFormat::Boats),
+            5  => Ok(MaterialFormat::Ingots),
+            6  => Ok(MaterialFormat::LeadFrames),
+            7  => Ok(MaterialFormat::Lots),
+            8  => Ok(MaterialFormat::Magazines),
+            9  => Ok(MaterialFormat::Packages),
+            10 => Ok(MaterialFormat::Plates),
+            11 => Ok(MaterialFormat::Tubes),
+            12 => Ok(MaterialFormat::WaferFrames),
+            13 => Ok(MaterialFormat::Carriers),
+            14 => Ok(MaterialFormat::Substrates),
+            _  => Err(WrongFormat),
+          }
+        } else {
+          Err(WrongFormat)
+        }
+      },
+      _ => Err(WrongFormat),
+    }
+  }
+}
+
 /// ## MID
 /// 
 /// Material ID.
@@ -2674,6 +2858,54 @@ singleformat_vec!{ModelName, Ascii, 0..=20, Char}
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
 pub struct MaterialID(Vec<Char>);
 singleformat_vec!{MaterialID, Ascii, 0..=80, Char}
+
+/// ## MIDAC
+/// 
+/// **Material ID Acknowledge Code**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single-byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F14
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum MaterialIDAcknowledgeCode {
+  Accepted = 0,
+  InvalidPortNumber = 1,
+  MaterialNotPresent = 2,
+}
+singleformat_enum!{MaterialIDAcknowledgeCode, Bin}
+
+/// ## MIDRA
+/// 
+/// **Material ID Request Acknowledge Code**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F12
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum MaterialIDRequestAcknowledgeCode {
+  MaterialIDFollows = 0,
+  MaterialIDDenied = 1,
+  MaterialIDLater = 2,
+}
+singleformat_enum!{MaterialIDRequestAcknowledgeCode, Bin}
 
 /// ## NULBC
 /// 
@@ -2821,6 +3053,65 @@ pub enum OnLineAcknowledge {
 }
 singleformat_enum!{OnLineAcknowledge, Bin}
 
+/// ## PARAMNAME
+/// 
+/// **Parameter Name**
+/// 
+/// The name of a parameter in a request.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F23, S3F25
+pub struct ParameterName(pub Vec<Char>);
+singleformat_vec!{ParameterName, Ascii}
+
+/// ## PARAMVAL
+/// 
+/// **Parameter Value**
+/// 
+/// The value of a parameter named by [PARAMNAME].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// TODO: Values that are lists are restricted to lists of single items of the
+/// same format type.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F23, S3F25
+/// 
+/// [PARAMNAME]: ParameterName
+#[derive(Clone, Debug)]
+pub enum ParameterValue {
+  List(Vec<Item>),
+  Bin(Vec<u8>),
+  Bool(Vec<bool>),
+  Ascii(Vec<Char>),
+  I1(Vec<i8>),
+  I2(Vec<i16>),
+  I4(Vec<i32>),
+  I8(Vec<i64>),
+  U1(Vec<u8>),
+  U2(Vec<u16>),
+  U4(Vec<u32>),
+  U8(Vec<u64>),
+  F4(Vec<f32>),
+  F8(Vec<f64>),
+}
+multiformat_vec!{ParameterValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
+
 /// ## PPID
 /// 
 /// Process Program ID
@@ -2848,6 +3139,88 @@ singleformat_enum!{OnLineAcknowledge, Bin}
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
 pub struct ProcessProgramID(Vec<Char>);
 singleformat_vec!{ProcessProgramID, Ascii, 0..=120, Char}
+
+/// ## PGRPACTION
+/// 
+/// **Port Group Action**
+/// 
+/// The action to be performed on a port group.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F23
+pub struct PortGroupAction(pub Vec<Char>);
+singleformat_vec!{PortGroupAction, Ascii}
+
+/// ## PORTGRPNAME
+/// 
+/// **Port Group Name**
+/// 
+/// The identifier of a group of ports.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F21, S3F23
+pub struct PortGroupName(pub Vec<Char>);
+singleformat_vec!{PortGroupName, Ascii}
+
+/// ## PTN
+/// 
+/// **Material Port Number**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single byte.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F11, S3F12, S3F13, S3F17, S3F21, S3F25, S3F27, S3F28
+/// - S4F1, S4F3, S4F5, S4F7, S4F9, S4F11, S4F13, S4F15, S4F17
+#[derive(Clone, Copy, Debug)]
+pub enum MaterialPortNumber {
+  Bin(u8),
+  U1(u8),
+}
+multiformat!{MaterialPortNumber, Bin, U1}
+
+/// ## QUA
+/// 
+/// **Quantity**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single byte.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F2, S3F4, S3F5, S3F7
+#[derive(Clone, Copy, Debug)]
+pub struct Quantity(pub u8);
+singleformat!{Quantity, U1}
 
 /// ## RAC
 /// 
@@ -3464,6 +3837,28 @@ pub enum TransferStatusOutputPort {
   Completed     = 5,
 }
 singleformat_enum!{TransferStatusOutputPort, Bin}
+
+/// ## TTC
+/// 
+/// **Time To Completion**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F4
+#[derive(Clone, Copy, Debug)]
+pub enum TimeToCompletion{
+  I1(i8),
+  I2(i16),
+  I4(i32),
+  I8(i64),
+  U1(u8),
+  U2(u16),
+  U4(u32),
+  U8(u64),
+}
+multiformat!{TimeToCompletion, I1, I2, I4, I8, U1, U2, U4, U8}
 
 /// ## UNITS
 /// 

@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -20,7 +20,7 @@
 
 //! # HIGH-SPEED SECS MESSAGE SERVICES (HSMS)
 //! 
-//! Copyright © 2024 Nathaniel Hardesty, Licensed under the MIT License
+//! Copyright © 2024-2025 Nathaniel Hardesty, Licensed under the MIT License
 //! 
 //! This software is created by a third-party and not endorsed or supported by
 //! SEMI.
