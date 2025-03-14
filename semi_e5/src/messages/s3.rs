@@ -111,7 +111,9 @@ message_headeronly!{MaterialStatusRequest, true, 3, 1}
 /// [LOC]: LocationCode
 /// [QUA]: Quantity
 /// [MID]: MaterialID
-pub struct MaterialStatusData(pub (MaterialFormat, VecList<(LocationCode, Quantity, MaterialID)>));
+pub struct MaterialStatusData {
+  pub data: (MaterialFormat, VecList<(LocationCode, Quantity, MaterialID)>)
+}
 message_data!{MaterialStatusData, false, 3, 2}
 
 /// ## S3F3
@@ -168,7 +170,9 @@ message_headeronly!{TimeToCompletionRequest, true, 3, 3}
 /// [TTC]: TimeToCompletion
 /// [QUA]: Quantity
 /// [MID]: MaterialID
-pub struct TimeToCompletionData(pub (MaterialFormat, VecList<(TimeToCompletion, Quantity, MaterialID)>));
+pub struct TimeToCompletionData {
+  pub data: (MaterialFormat, VecList<(TimeToCompletion, Quantity, MaterialID)>)
+}
 message_data!{TimeToCompletionData, false, 3, 4}
 
 /// ## S3F5
@@ -178,8 +182,6 @@ message_data!{TimeToCompletionData, false, 3, 4}
 /// - **SINGLE-BLOCK**
 /// - **HOST <- EQUIPMENT**
 /// - **REPLY OPTIONAL**
-/// 
-/// TODO: Implement optional reply.
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -197,8 +199,11 @@ message_data!{TimeToCompletionData, false, 3, 4}
 /// 
 /// [MF]:  MaterialFormat
 /// [QUA]: Quantity
-pub struct MaterialFoundSend(pub (MaterialFormat, Quantity));
-message_data!{MaterialFoundSend, true, 3, 5}
+pub struct MaterialFoundSend {
+  pub data: (MaterialFormat, Quantity),
+  pub reply: bool
+}
+message_data_reply!{MaterialFoundSend, 3, 5}
 
 /// ## S3F6
 /// 
@@ -221,7 +226,9 @@ message_data!{MaterialFoundSend, true, 3, 5}
 /// - [ACKC3]
 /// 
 /// [ACKC3]: AcknowledgeCode3
-pub struct MaterialFoundAcknowledge(pub AcknowledgeCode3);
+pub struct MaterialFoundAcknowledge {
+  pub data: AcknowledgeCode3
+}
 message_data!{MaterialFoundAcknowledge, false, 3, 6}
 
 /// ## S3F7
@@ -231,8 +238,6 @@ message_data!{MaterialFoundAcknowledge, false, 3, 6}
 /// - **SINGLE-BLOCK**
 /// - **HOST <- EQUIPMENT**
 /// - **REPLY OPTIONAL**
-/// 
-/// TODO: Implement optional reply.
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -252,8 +257,11 @@ message_data!{MaterialFoundAcknowledge, false, 3, 6}
 /// [MF]:  MaterialFormat
 /// [QUA]: Quantity
 /// [MID]: MaterialID
-pub struct MaterialLostSend(pub (MaterialFormat, Quantity, MaterialID));
-message_data!{MaterialLostSend, true, 3, 7}
+pub struct MaterialLostSend {
+  pub data: (MaterialFormat, Quantity, MaterialID),
+  pub reply: bool
+}
+message_data_reply!{MaterialLostSend, 3, 7}
 
 /// ## S3F8
 /// 
@@ -276,7 +284,9 @@ message_data!{MaterialLostSend, true, 3, 7}
 /// - [ACKC3]
 /// 
 /// [ACKC3]: AcknowledgeCode3
-pub struct MaterialLostAcknowledge(pub AcknowledgeCode3);
+pub struct MaterialLostAcknowledge {
+  pub data: AcknowledgeCode3
+}
 message_data!{MaterialLostAcknowledge, false, 3, 8}
 
 /// ## S3F9
@@ -304,7 +314,9 @@ message_data!{MaterialLostAcknowledge, false, 3, 8}
 /// 
 /// [MID]:  MaterialID
 /// [EMID]: EquivalentMaterialID
-pub struct MaterialIDEquateSend(pub (MaterialID, EquivalentMaterialID));
+pub struct MaterialIDEquateSend {
+  pub data: (MaterialID, EquivalentMaterialID)
+}
 message_data!{MaterialIDEquateSend, true, 3, 9}
 
 /// ## S3F10
@@ -328,7 +340,9 @@ message_data!{MaterialIDEquateSend, true, 3, 9}
 /// - [ACKC3]
 /// 
 /// [ACKC3]: AcknowledgeCode3
-pub struct MaterialIDEquateAcknowledge(pub AcknowledgeCode3);
+pub struct MaterialIDEquateAcknowledge {
+  pub data: AcknowledgeCode3
+}
 message_data!{MaterialIDEquateAcknowledge, false, 3, 10}
 
 /// ## S3F11
@@ -352,7 +366,9 @@ message_data!{MaterialIDEquateAcknowledge, false, 3, 10}
 /// - [PTN]
 /// 
 /// [PTN]: PortNumber
-pub struct MaterialIDRequest(pub PortNumber);
+pub struct MaterialIDRequest {
+  pub data: PortNumber
+}
 message_data!{MaterialIDRequest, true, 3, 11}
 
 /// ## S3F12
@@ -378,12 +394,14 @@ message_data!{MaterialIDRequest, true, 3, 11}
 ///    2. [MIDRA]
 ///    3. [MID]
 /// 
-/// TODO: This message has complicated semantics.
+/// TODO: Message has complex semantics.
 /// 
 /// [PTN]:   PortNumber
 /// [MIDRA]: MaterialIDRequestAcknowledgeCode
 /// [MID]:   MaterialID
-pub struct MaterialIDRequestAcknowledge(pub (PortNumber, MaterialIDRequestAcknowledgeCode, MaterialID));
+pub struct MaterialIDRequestAcknowledge {
+  pub data: (PortNumber, MaterialIDRequestAcknowledgeCode, MaterialID)
+}
 message_data!{MaterialIDRequestAcknowledge, false, 3, 12}
 
 /// ## S3F13
@@ -412,7 +430,9 @@ message_data!{MaterialIDRequestAcknowledge, false, 3, 12}
 /// 
 /// [PTN]: PortNumber
 /// [MID]: MaterialID
-pub struct MaterialIDSend(pub (PortNumber, MaterialID));
+pub struct MaterialIDSend {
+  pub data: (PortNumber, MaterialID)
+}
 message_data!{MaterialIDSend, true, 3, 13}
 
 /// ## S3F14
@@ -436,7 +456,9 @@ message_data!{MaterialIDSend, true, 3, 13}
 /// - [MIDAC]
 /// 
 /// [MIDAC]: MaterialIDAcknowledgeCode
-pub struct MaterialIDAcknowledge(pub MaterialIDAcknowledgeCode);
+pub struct MaterialIDAcknowledge {
+  pub data: MaterialIDAcknowledgeCode
+}
 message_data!{MaterialIDAcknowledge, false, 3, 14}
 
 /// ## S3F15
@@ -452,6 +474,7 @@ message_data!{MaterialIDAcknowledge, false, 3, 14}
 /// #### Description
 /// 
 /// Establish that sending a multi-block message is allowed prior to sending
+/// [S3F17].
 /// 
 /// TODO: Finish Description
 /// 
@@ -465,7 +488,9 @@ message_data!{MaterialIDAcknowledge, false, 3, 14}
 /// 
 /// [DATAID]:     DataID
 /// [DATALENGTH]: DataLength
-pub struct MultiBlockInquire(pub (DataID, DataLength));
+pub struct MultiBlockInquire {
+  pub data: (DataID, DataLength)
+}
 message_data!{MultiBlockInquire, true, 3, 15}
 
 /// ## S3F16
@@ -489,7 +514,9 @@ message_data!{MultiBlockInquire, true, 3, 15}
 /// - [GRANT]
 /// 
 /// [GRANT]: Grant
-pub struct MultiBlockGrant(pub Grant);
+pub struct MultiBlockGrant {
+  pub data: Grant
+}
 message_data!{MultiBlockGrant, false, 3, 16}
 
 /// ## S3F17
@@ -532,7 +559,9 @@ message_data!{MultiBlockGrant, false, 3, 16}
 /// [PTN]:           PortNumber
 /// [CATTRID]:       CarrierAttributeID
 /// [CATTRDATA]:     CarrierAttributeValue
-pub struct CarrierActionRequest(pub (DataID, CarrierAction, CarrierID, PortNumber, VecList<(CarrierAttributeID, CarrierAttributeValue)>));
+pub struct CarrierActionRequest {
+  pub data: (DataID, CarrierAction, CarrierID, PortNumber, VecList<(CarrierAttributeID, CarrierAttributeValue)>)
+}
 message_data!{CarrierActionRequest, true, 3, 17}
 
 /// ## S3F18
@@ -567,7 +596,9 @@ message_data!{CarrierActionRequest, true, 3, 17}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct CarrierActionAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct CarrierActionAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{CarrierActionAcknowledge, false, 3, 18}
 
 /// ## S3F19
@@ -624,7 +655,9 @@ message_headeronly!{CancelAllCarrierOutRequest, true, 3, 19}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct CancelAllCarrierOutAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct CancelAllCarrierOutAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{CancelAllCarrierOutAcknowledge, false, 3, 18}
 
 /// ## S3F21
@@ -654,7 +687,9 @@ message_data!{CancelAllCarrierOutAcknowledge, false, 3, 18}
 /// [PORTGRPNAME]: PortGroupName
 /// [ACCESSMODE]:  AccessMode
 /// [PTN]:         PortNumber
-pub struct PortGroupDefinition(pub (PortGroupName, AccessMode, VecList<PortNumber>));
+pub struct PortGroupDefinition {
+  pub data: (PortGroupName, AccessMode, VecList<PortNumber>)
+}
 message_data!{PortGroupDefinition, true, 3, 19}
 
 /// ## S3F22
@@ -689,7 +724,9 @@ message_data!{PortGroupDefinition, true, 3, 19}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct PortGroupDefinitionAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct PortGroupDefinitionAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{PortGroupDefinitionAcknowledge, false, 3, 22}
 
 /// ## S3F23
@@ -725,7 +762,9 @@ message_data!{PortGroupDefinitionAcknowledge, false, 3, 22}
 /// [PORTGRPNAME]:   PortGroupName
 /// [PARAMNAME]:     ParameterName
 /// [PARAMVAL]:      ParameterValue
-pub struct PortGroupActionRequest(pub (PortGroupAction, PortGroupName, VecList<(ParameterName, ParameterValue)>));
+pub struct PortGroupActionRequest {
+  pub data: (PortGroupAction, PortGroupName, VecList<(ParameterName, ParameterValue)>)
+}
 message_data!{PortGroupActionRequest, true, 3, 23}
 
 /// ## S3F24
@@ -760,7 +799,9 @@ message_data!{PortGroupActionRequest, true, 3, 23}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct PortGroupActionAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct PortGroupActionAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{PortGroupActionAcknowledge, false, 3, 24}
 
 /// ## S3F25
@@ -795,7 +836,9 @@ message_data!{PortGroupActionAcknowledge, false, 3, 24}
 /// [PTN]:        PortNumber
 /// [PARAMNAME]:  ParameterName
 /// [PARAMVALUE]: ParameterValue
-pub struct PortActionRequest(pub (PortAction, PortNumber, VecList<(ParameterName, ParameterValue)>));
+pub struct PortActionRequest {
+  pub data: (PortAction, PortNumber, VecList<(ParameterName, ParameterValue)>)
+}
 message_data!{PortActionRequest, true, 3, 25}
 
 /// ## S3F26
@@ -830,7 +873,9 @@ message_data!{PortActionRequest, true, 3, 25}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct PortActionAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct PortActionAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{PortActionAcknowledge, false, 3, 26}
 
 /// ## S3F27
@@ -868,7 +913,9 @@ message_data!{PortActionAcknowledge, false, 3, 26}
 /// 
 /// [ACCESSMODE]: AccessMode
 /// [PTN]:        PortNumber
-pub struct ChangeAccess(pub (AccessMode, VecList<PortNumber>));
+pub struct ChangeAccess {
+  pub data: (AccessMode, VecList<PortNumber>)
+}
 message_data!{ChangeAccess, true, 3, 27}
 
 /// ## S3F28
@@ -905,7 +952,9 @@ message_data!{ChangeAccess, true, 3, 27}
 /// [PTN]:     PortNumber
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct ChangeAccessAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(PortNumber, ErrorCode, ErrorText)>));
+pub struct ChangeAccessAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(PortNumber, ErrorCode, ErrorText)>)
+}
 message_data!{ChangeAccessAcknowledge, false, 3, 28}
 
 /// ## S3F29
@@ -940,7 +989,9 @@ message_data!{ChangeAccessAcknowledge, false, 3, 28}
 /// [CARRIERSPEC]: CarrierSpecifier
 /// [DATASEG]:     DataSegment
 /// [DATALENGTH]:  DataLength
-pub struct CarrierTagReadRequest(pub (LocationID, CarrierSpecifier, DataSegment, DataLength));
+pub struct CarrierTagReadRequest {
+  pub data: (LocationID, CarrierSpecifier, DataSegment, DataLength)
+}
 message_data!{CarrierTagReadRequest, true, 3, 29}
 
 /// ## S3F30
@@ -977,7 +1028,9 @@ message_data!{CarrierTagReadRequest, true, 3, 29}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct CarrierTagReadData(pub (Data, (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)));
+pub struct CarrierTagReadData {
+  pub data: (Data, (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>))
+}
 message_data!{CarrierTagReadData, false, 3, 30}
 
 /// ## S3F31
@@ -1014,7 +1067,9 @@ message_data!{CarrierTagReadData, false, 3, 30}
 /// [DATASEG]:     DataSegment
 /// [DATALENGTH]:  DataLength
 /// [DATA]:        Data
-pub struct CarrierTagWriteDataRequest(pub (LocationID, CarrierSpecifier, DataSegment, DataLength, Data));
+pub struct CarrierTagWriteDataRequest {
+  pub data: (LocationID, CarrierSpecifier, DataSegment, DataLength, Data)
+}
 message_data!{CarrierTagWriteDataRequest, true, 3, 31}
 
 /// ## S3F32
@@ -1048,7 +1103,9 @@ message_data!{CarrierTagWriteDataRequest, true, 3, 31}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct CarrierTagWriteDataAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct CarrierTagWriteDataAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{CarrierTagWriteDataAcknowledge, false, 3, 32}
 
 /// ## S3F33
@@ -1103,7 +1160,9 @@ message_headeronly!{CancelAllPodOutRequest, true, 3, 33}
 /// [CAACK]:   CarrierActionAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct CancelAllPodOutAcknowledge(pub (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct CancelAllPodOutAcknowledge {
+  pub data: (CarrierActionAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{CancelAllPodOutAcknowledge, false, 3, 34}
 
 /// ## S3F35
@@ -1157,7 +1216,9 @@ message_data!{CancelAllPodOutAcknowledge, false, 3, 34}
 /// [RETICLEID]:      ReticleID
 /// [RETREMOVEINSTR]: ReticleRemoveInstruction
 /// [RETPLACEINSTR]:  ReticlePlaceInstruction
-pub struct ReticleTransferJobRequest(pub (JobAction, PodID, InputPortNumber, OutputPortNumber, VecList<(AttributeID, AttributeValue)>, VecList<(ReticleID, ReticleRemoveInstruction, VecList<(AttributeID, AttributeValue)>)>, VecList<(ReticleID, ReticlePlaceInstruction)>));
+pub struct ReticleTransferJobRequest {
+  pub data: (JobAction, PodID, InputPortNumber, OutputPortNumber, VecList<(AttributeID, AttributeValue)>, VecList<(ReticleID, ReticleRemoveInstruction, VecList<(AttributeID, AttributeValue)>)>, VecList<(ReticleID, ReticlePlaceInstruction)>)
+}
 message_data!{ReticleTransferJobRequest, true, 3, 35}
 
 /// ## S3F36
@@ -1187,5 +1248,7 @@ message_data!{ReticleTransferJobRequest, true, 3, 35}
 /// [RPMACK]:  ReticlePodManagementAcknowledgeCode
 /// [ERRCODE]: ErrorCode
 /// [ERRTEXT]: ErrorText
-pub struct ReticleTransferJobAcknowledge(pub (ReticlePodManagementAcknowledgeCode, VecList<(ErrorCode, ErrorText)>));
+pub struct ReticleTransferJobAcknowledge {
+  pub data: (ReticlePodManagementAcknowledgeCode, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{ReticleTransferJobAcknowledge, false, 3, 36}

@@ -52,19 +52,7 @@
 //! 
 //! - Implement "Localized" strings.
 //! - Finish adding items.
-//! - Add messages to Streams 3 through 21.
-//! 
-//! ----------------------------------------------------------------------------
-//! 
-//! ## REFERENCED STANDARDS
-//! 
-//! - SEMI E4        - SEMI Equipment Communications Standard 1 Message Transfer (SECS-I)
-//! - SEMI E6        - Guide for Semiconductor Equipment Installation Documentation
-//! - SEMI E37       - High-Speed SECS Message Services (HSMS) Generic Services
-//! - SEMI E148      - Specification for Time Synchronization and Definition of the TS-Clock Object
-//! - ANSI X3.4-1977 - Code for Information Interchange (ASCII)
-//! - IEEE 754       - Standards for Binary Floating Point Arithmetic
-//! - JIS-6226       - JIS 8-bit Coded Character Set for Information Exchange
+//! - Add messages to Streams 4 through 21.
 //! 
 //! [SEMI E4]:  https://store-us.semi.org/products/e00400-semi-e4-specification-for-semi-equipment-communications-standard-1-message-transfer-secs-i
 //! [SEMI E5]:  https://store-us.semi.org/products/e00500-semi-e5-specification-for-semi-equipment-communications-standard-2-message-content-secs-ii

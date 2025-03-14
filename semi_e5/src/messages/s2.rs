@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -89,7 +89,9 @@ message_headeronly!{Abort, false, 2, 0}
 /// 
 /// [SPID]:   ServiceProgramID
 /// [LENGTH]: Length
-pub struct ServiceProgramLoadInquire(pub (ServiceProgramID, Length));
+pub struct ServiceProgramLoadInquire {
+  pub data: (ServiceProgramID, Length)
+}
 message_data!{ServiceProgramLoadInquire, true, 2, 1}
 
 /// ## S2F2
@@ -111,7 +113,9 @@ message_data!{ServiceProgramLoadInquire, true, 2, 1}
 /// - [GRANT]
 /// 
 /// [GRANT]: Grant
-pub struct ServiceProgramLoadGrant(pub Grant);
+pub struct ServiceProgramLoadGrant {
+  pub data: Grant
+}
 message_data!{ServiceProgramLoadGrant, false, 2, 2}
 
 /// ## S2F3
@@ -134,7 +138,9 @@ message_data!{ServiceProgramLoadGrant, false, 2, 2}
 /// 
 /// [S2F1]: ServiceProgramLoadInquire
 /// [SPD]:  ServiceProgramData
-pub struct ServiceProgramSend(pub ServiceProgramData);
+pub struct ServiceProgramSend {
+  pub data: ServiceProgramData
+}
 message_data!{ServiceProgramSend, true, 2, 3}
 
 /// ## S2F4
@@ -157,7 +163,9 @@ message_data!{ServiceProgramSend, true, 2, 3}
 /// 
 /// [S2F3]:   ServiceProgramSend
 /// [SPAACK]: ServiceProgramAcknowledge
-pub struct ServiceProgramSendAcknowledge(pub ServiceProgramAcknowledge);
+pub struct ServiceProgramSendAcknowledge {
+  pub data: ServiceProgramAcknowledge
+}
 message_data!{ServiceProgramSendAcknowledge, false, 2, 4}
 
 /// ## S2F5
@@ -179,7 +187,9 @@ message_data!{ServiceProgramSendAcknowledge, false, 2, 4}
 /// - [SPID]
 /// 
 /// [SPID]: ServiceProgramID
-pub struct ServiceProgramLoadRequest(pub ServiceProgramID);
+pub struct ServiceProgramLoadRequest {
+  pub data: ServiceProgramID
+}
 message_data!{ServiceProgramLoadRequest, true, 2, 5}
 
 /// ## S2F6
@@ -203,7 +213,9 @@ message_data!{ServiceProgramLoadRequest, true, 2, 5}
 /// Zero-length item means that the service program cannot be returned.
 /// 
 /// [SPD]: ServiceProgramData
-pub struct ServiceProgramLoadData(pub ServiceProgramData);
+pub struct ServiceProgramLoadData {
+  pub data: ServiceProgramData
+}
 message_data!{ServiceProgramLoadData, false, 2, 6}
 
 /// ## S2F7
@@ -225,7 +237,9 @@ message_data!{ServiceProgramLoadData, false, 2, 6}
 /// - [SPID]
 /// 
 /// [SPID]: ServiceProgramID
-pub struct ServiceProgramRunSend(pub ServiceProgramID);
+pub struct ServiceProgramRunSend {
+  pub data: ServiceProgramID
+}
 message_data!{ServiceProgramRunSend, true, 2, 7}
 
 /// ## S2F8
@@ -248,7 +262,9 @@ message_data!{ServiceProgramRunSend, true, 2, 7}
 /// 
 /// [S2F7]:   ServiceProgramRunSend
 /// [CSAACK]: ServiceAcknowledgeCode
-pub struct ServiceProgramRunAcknowledge(pub ServiceAcknowledgeCode);
+pub struct ServiceProgramRunAcknowledge {
+  pub data: ServiceAcknowledgeCode
+}
 message_data!{ServiceProgramRunAcknowledge, false, 2, 8}
 
 /// ## S2F9
@@ -270,7 +286,9 @@ message_data!{ServiceProgramRunAcknowledge, false, 2, 8}
 /// - [SPID]
 /// 
 /// [SPID]: ServiceProgramID
-pub struct ServiceProgramResultsRequest(pub ServiceProgramID);
+pub struct ServiceProgramResultsRequest {
+  pub data: ServiceProgramID
+}
 message_data!{ServiceProgramResultsRequest, true, 2, 9}
 
 /// ## S2F10
@@ -294,7 +312,9 @@ message_data!{ServiceProgramResultsRequest, true, 2, 9}
 /// Zero-length item means [SPR] does not exist.
 /// 
 /// [SPR]: ServiceProgramResults
-pub struct ServiceProgramResultsData(pub ServiceProgramResults);
+pub struct ServiceProgramResultsData {
+  pub data: ServiceProgramResults
+}
 message_item!{ServiceProgramResultsData, false, 2, 10}
 
 /// ## S2F11
@@ -339,7 +359,9 @@ message_headeronly!{ServiceProgramDirectoryRequest, true, 2, 11}
 /// N is the number of service programs.
 /// 
 /// [SPID]: ServiceProgramID
-pub struct ServiceProgramDirectoryData(pub VecList<ServiceProgramID>);
+pub struct ServiceProgramDirectoryData {
+  pub data: VecList<ServiceProgramID>
+}
 message_data!{ServiceProgramDirectoryData, false, 2, 12}
 
 /// ## S2F13
@@ -366,7 +388,9 @@ message_data!{ServiceProgramDirectoryData, false, 2, 12}
 /// 
 /// [ECID]: EquipmentConstantID
 /// [ECV]:  EquipmentConstantValue
-pub struct EquipmentConstantRequest(pub VecList<EquipmentConstantID>);
+pub struct EquipmentConstantRequest {
+  pub data: VecList<EquipmentConstantID>
+}
 message_data!{EquipmentConstantRequest, true, 2, 13}
 
 /// ## S2F14
@@ -380,8 +404,6 @@ message_data!{EquipmentConstantRequest, true, 2, 13}
 /// ----------------------------------------------------------------------------
 /// 
 /// Equipment constant values.
-/// 
-/// TODO: Implement zero-length list item exception.
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -398,7 +420,9 @@ message_data!{EquipmentConstantRequest, true, 2, 13}
 /// 
 /// [ECID]: EquipmentConstantID
 /// [ECV]:  EquipmentConstantValue
-pub struct EquipmentConstantData(pub VecList<OptionItem<EquipmentConstantValue>>);
+pub struct EquipmentConstantData {
+  pub data: VecList<OptionItem<EquipmentConstantValue>>
+}
 message_data!{EquipmentConstantData, false, 2, 14}
 
 /// ## S2F15
@@ -426,7 +450,9 @@ message_data!{EquipmentConstantData, false, 2, 14}
 /// 
 /// [ECID]: EquipmentConstantID
 /// [ECV]:  EquipmentConstantValue
-pub struct NewEquipmentConstantSend(pub VecList<(EquipmentConstantID, EquipmentConstantValue)>);
+pub struct NewEquipmentConstantSend {
+  pub data: VecList<(EquipmentConstantID, EquipmentConstantValue)>
+}
 message_data!{NewEquipmentConstantSend, true, 2, 15}
 
 /// ## S2F16
@@ -452,7 +478,9 @@ message_data!{NewEquipmentConstantSend, true, 2, 15}
 /// 
 /// [EAC]:   EquipmentAcknowledgeCode
 /// [S2F15]: NewEquipmentConstantSend
-pub struct NewEquipmentConstantAcknowledge(pub EquipmentAcknowledgeCode);
+pub struct NewEquipmentConstantAcknowledge {
+  pub data: EquipmentAcknowledgeCode
+}
 message_data!{NewEquipmentConstantAcknowledge, false, 2, 16}
 
 /// ## S2F17
@@ -496,7 +524,9 @@ message_headeronly!{DateTimeRequest, true, 2, 17}
 /// Zero-length [TIME] item means no time data exists.
 /// 
 /// [TIME]: Time
-pub struct DateTimeData(pub Time);
+pub struct DateTimeData {
+  pub data: Time
+}
 message_data!{DateTimeData, false, 2, 18}
 
 /// ## S2F19
@@ -518,7 +548,9 @@ message_data!{DateTimeData, false, 2, 18}
 /// - [RIC]
 /// 
 /// [RIC]: ResetCode
-pub struct ResetInitializeSend(pub ResetCode);
+pub struct ResetInitializeSend {
+  pub data: ResetCode
+}
 message_data!{ResetInitializeSend, true, 2, 19}
 
 /// ## S2F20
@@ -540,7 +572,9 @@ message_data!{ResetInitializeSend, true, 2, 19}
 /// - [RAC]
 /// 
 /// [RAC]: ResetAcknowledgeCode
-pub struct ResetAcknowledge(pub ResetAcknowledgeCode);
+pub struct ResetAcknowledge {
+  pub data: ResetAcknowledgeCode
+}
 message_data!{ResetAcknowledge, false, 2, 20}
 
 /// ## S2F21
@@ -550,8 +584,6 @@ message_data!{ResetAcknowledge, false, 2, 20}
 /// - **SINGLE-BLOCK**
 /// - **HOST -> EQUIPMENT**
 /// - **REPLY OPTIONAL**
-/// 
-/// TODO: Implement optional reply.
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -564,8 +596,11 @@ message_data!{ResetAcknowledge, false, 2, 20}
 /// - [RCMD]
 /// 
 /// [RCMD]: RemoteCommand
-pub struct RemoteCommandSend(pub RemoteCommand);
-message_data!{RemoteCommandSend, true, 2, 21}
+pub struct RemoteCommandSend {
+  pub data: RemoteCommand,
+  pub reply: bool,
+}
+message_data_reply!{RemoteCommandSend, 2, 21}
 
 /// ## S2F22
 /// 
@@ -586,7 +621,9 @@ message_data!{RemoteCommandSend, true, 2, 21}
 /// - [CMDA]
 /// 
 /// [CMDA]: CommandAcknowledge
-pub struct RemoteCommandAcknowledge(pub CommandAcknowledge);
+pub struct RemoteCommandAcknowledge {
+  pub data: CommandAcknowledge
+}
 message_data!{RemoteCommandAcknowledge, false, 2, 22}
 
 /// ## S2F23
@@ -639,7 +676,9 @@ message_data!{RemoteCommandAcknowledge, false, 2, 22}
 /// [TOTSMP]: TotalSamples
 /// [REPGSZ]: ReportingGroupSize
 /// [SVID]:   StatusVariableID
-pub struct TraceInitializeSend(pub (TraceRequestID, DataSamplePeriod, TotalSamples, ReportingGroupSize, VecList<StatusVariableID>));
+pub struct TraceInitializeSend {
+  pub data: (TraceRequestID, DataSamplePeriod, TotalSamples, ReportingGroupSize, VecList<StatusVariableID>)
+}
 message_data!{TraceInitializeSend, true, 2, 23}
 
 /// ## S2F24
@@ -661,7 +700,9 @@ message_data!{TraceInitializeSend, true, 2, 23}
 /// - [TIAACK]
 /// 
 /// [TIAACK]: TraceInitializeAcknowledgeCode
-pub struct TraceInitializeAcknowledge(pub TraceInitializeAcknowledgeCode);
+pub struct TraceInitializeAcknowledge {
+  pub data: TraceInitializeAcknowledgeCode
+}
 message_data!{TraceInitializeAcknowledge, false, 2, 24}
 
 /// ## S2F25
@@ -685,7 +726,9 @@ message_data!{TraceInitializeAcknowledge, false, 2, 24}
 /// - [ABS]
 /// 
 /// [ABS]: AnyBinaryString
-pub struct LoopbackDiagnosticRequest(pub AnyBinaryString);
+pub struct LoopbackDiagnosticRequest {
+  pub data: AnyBinaryString
+}
 message_data!{LoopbackDiagnosticRequest, true, 2, 25}
 
 /// ## S2F26
@@ -707,7 +750,9 @@ message_data!{LoopbackDiagnosticRequest, true, 2, 25}
 /// - [ABS]
 /// 
 /// [ABS]: AnyBinaryString
-pub struct LoopbackDiagnosticData(pub AnyBinaryString);
+pub struct LoopbackDiagnosticData {
+  pub data: AnyBinaryString
+}
 message_data!{LoopbackDiagnosticData, false, 2, 26}
 
 /// ## S2F27
@@ -743,7 +788,9 @@ message_data!{LoopbackDiagnosticData, false, 2, 26}
 /// [LOC]:  LocationCode
 /// [PPID]: ProcessProgramID
 /// [MID]:  MaterialID
-pub struct InitiateProcessingRequest(pub (LocationCode, ProcessProgramID, VecList<MaterialID>));
+pub struct InitiateProcessingRequest {
+  pub data: (LocationCode, ProcessProgramID, VecList<MaterialID>)
+}
 message_data!{InitiateProcessingRequest, true, 2, 27}
 
 /// ## S2F28
@@ -765,7 +812,9 @@ message_data!{InitiateProcessingRequest, true, 2, 27}
 /// - [CMDA]
 /// 
 /// [CMDA]: CommandAcknowledge
-pub struct InitiateProcessingAcknowledge(pub CommandAcknowledge);
+pub struct InitiateProcessingAcknowledge {
+  pub data: CommandAcknowledge
+}
 message_data!{InitiateProcessingAcknowledge, false, 2, 28}
 
 /// ## S2F29
@@ -792,7 +841,9 @@ message_data!{InitiateProcessingAcknowledge, false, 2, 28}
 /// Zero-length N means to request information about all equipment constants.
 /// 
 /// [ECID]: EquipmentConstantID
-pub struct EquipmentConstantNamelistRequest(pub VecList<EquipmentConstantID>);
+pub struct EquipmentConstantNamelistRequest {
+  pub data: VecList<EquipmentConstantID>
+}
 message_data!{EquipmentConstantNamelistRequest, true, 2, 29}
 
 /// ## S2F30
@@ -831,7 +882,9 @@ message_data!{EquipmentConstantNamelistRequest, true, 2, 29}
 /// [ECMAX]:  EquipmentConstantMaximumValue
 /// [ECDEF]:  EquipmentConstantDefaultValue
 /// [UNITS]:  Units
-pub struct EquipmentConstantNamelist(pub VecList<(EquipmentConstantID, EquipmentConstantName, EquipmentConstantMinimumValue, EquipmentConstantMaximumValue, EquipmentConstantDefaultValue, Units)>);
+pub struct EquipmentConstantNamelist {
+  pub data: VecList<(EquipmentConstantID, EquipmentConstantName, EquipmentConstantMinimumValue, EquipmentConstantMaximumValue, EquipmentConstantDefaultValue, Units)>
+}
 message_data!{EquipmentConstantNamelist, false, 2, 30}
 
 /// ## S2F31
@@ -853,7 +906,9 @@ message_data!{EquipmentConstantNamelist, false, 2, 30}
 /// - [TIME]
 /// 
 /// [TIME]: Time
-pub struct DateTimeSetRequest(pub Time);
+pub struct DateTimeSetRequest {
+  pub data: Time
+}
 message_data!{DateTimeSetRequest, true, 2, 31}
 
 /// ## S2F32
@@ -875,7 +930,9 @@ message_data!{DateTimeSetRequest, true, 2, 31}
 /// - [TIACK]
 /// 
 /// [TIACK]: TimeAcknowledgeCode
-pub struct DateTimeSetAcknowledge(pub TimeAcknowledgeCode);
+pub struct DateTimeSetAcknowledge {
+  pub data: TimeAcknowledgeCode
+}
 message_data!{DateTimeSetAcknowledge, false, 2, 32}
 
 /// ## S2F33
@@ -914,7 +971,9 @@ message_data!{DateTimeSetAcknowledge, false, 2, 32}
 /// [RPTID]:  ReportID
 /// [VID]:    VariableID
 /// [CEID]:   CollectionEventID
-pub struct DefineReport(pub (DataID, VecList<(ReportID, VecList<VariableID>)>));
+pub struct DefineReport {
+  pub data: (DataID, VecList<(ReportID, VecList<VariableID>)>)
+}
 message_data!{DefineReport, true, 2, 33}
 
 /// ## S2F34
@@ -937,7 +996,9 @@ message_data!{DefineReport, true, 2, 33}
 /// - [DRACK]
 /// 
 /// [DRACK]: DefineReportAcknowledgeCode
-pub struct DefineReportAcknowledge(pub DefineReportAcknowledgeCode);
+pub struct DefineReportAcknowledge {
+  pub data: DefineReportAcknowledgeCode
+}
 message_data!{DefineReportAcknowledge, false, 2, 34}
 
 /// ## S2F35
@@ -976,7 +1037,9 @@ message_data!{DefineReportAcknowledge, false, 2, 34}
 /// [DATAID]: DataID
 /// [CEID]:   CollectionEventID
 /// [RPTID]:  ReportID
-pub struct LinkEventReport(pub (DataID, VecList<(CollectionEventID, VecList<ReportID>)>));
+pub struct LinkEventReport {
+  pub data: (DataID, VecList<(CollectionEventID, VecList<ReportID>)>)
+}
 message_data!{LinkEventReport, true, 2, 35}
 
 /// ## S2F36
@@ -999,7 +1062,9 @@ message_data!{LinkEventReport, true, 2, 35}
 /// - [LRACK]
 /// 
 /// [LRACK]: LinkReportAcknowledgeCode
-pub struct LinkEventReportAcknowledge(pub LinkReportAcknowledgeCode);
+pub struct LinkEventReportAcknowledge {
+  pub data: LinkReportAcknowledgeCode
+}
 message_data!{LinkEventReportAcknowledge, false, 2, 36}
 
 /// ## S2F37
@@ -1029,7 +1094,9 @@ message_data!{LinkEventReportAcknowledge, false, 2, 36}
 /// 
 /// [CEED]: CollectionEventEnableDisable
 /// [CEID]: CollectionEventID
-pub struct EnableDisableEventReport(pub (CollectionEventEnableDisable, VecList<CollectionEventID>));
+pub struct EnableDisableEventReport {
+  pub data: (CollectionEventEnableDisable, VecList<CollectionEventID>)
+}
 message_data!{EnableDisableEventReport, true, 2, 37}
 
 /// ## S2F38
@@ -1052,7 +1119,9 @@ message_data!{EnableDisableEventReport, true, 2, 37}
 /// - [ERACK]
 /// 
 /// [ERACK]: EnableDisableEventReportAcknowledgeCode
-pub struct EnableDisableEventReportAcknowledge(pub EnableDisableEventReportAcknowledgeCode);
+pub struct EnableDisableEventReportAcknowledge {
+  pub data: EnableDisableEventReportAcknowledgeCode
+}
 message_data!{EnableDisableEventReportAcknowledge, false, 2, 38}
 
 /// ## S2F39
@@ -1083,7 +1152,9 @@ message_data!{EnableDisableEventReportAcknowledge, false, 2, 38}
 /// [S2F35]:      LinkEventReport
 /// [S2F45]:      DefineVariableLimitAttributes
 /// [S2F49]:      EnhancedRemoteCommand
-pub struct MultiBlockInquire(pub (DataID, DataLength));
+pub struct MultiBlockInquire {
+  pub data: (DataID, DataLength)
+}
 message_data!{MultiBlockInquire, true, 2, 39}
 
 /// ## S2F40
@@ -1105,7 +1176,9 @@ message_data!{MultiBlockInquire, true, 2, 39}
 /// - [GRANT]
 /// 
 /// [GRANT]: Grant
-pub struct MultiBlockGrant(pub Grant);
+pub struct MultiBlockGrant {
+  pub data: Grant
+}
 message_data!{MultiBlockGrant, false, 2, 40}
 
 /// ## S2F41
@@ -1135,7 +1208,9 @@ message_data!{MultiBlockGrant, false, 2, 40}
 /// [RCMD]:   RemoteCommand
 /// [CPNAME]: CommandParameterName
 /// [CPVAL]:  CommandParameterValue
-pub struct HostCommandSend(pub (RemoteCommand, VecList<(CommandParameterName, CommandParameterValue)>));
+pub struct HostCommandSend {
+  pub data: (RemoteCommand, VecList<(CommandParameterName, CommandParameterValue)>)
+}
 message_data!{HostCommandSend, true, 2, 41}
 
 /// ## S2F42
@@ -1166,7 +1241,9 @@ message_data!{HostCommandSend, true, 2, 41}
 /// [HCACK]:  HostCommandAcknowledgeCode
 /// [CPNAME]: CommandParameterName
 /// [CPACK]:  CommandParameterAcknowledgeCode
-pub struct HostCommandAcknowledge(pub (HostCommandAcknowledgeCode, VecList<(CommandParameterName, CommandParameterAcknowledgeCode)>));
+pub struct HostCommandAcknowledge {
+  pub data: (HostCommandAcknowledgeCode, VecList<(CommandParameterName, CommandParameterAcknowledgeCode)>)
+}
 message_data!{HostCommandAcknowledge, false, 2, 42}
 
 /// ## S2F43
@@ -1212,7 +1289,9 @@ message_data!{HostCommandAcknowledge, false, 2, 42}
 /// 
 /// [STRID]: StreamID
 /// [FCNID]: FunctionID
-pub struct ResetSpoolingStreamsAndFunctions(pub VecList<(StreamID, VecList<FunctionID>)>);
+pub struct ResetSpoolingStreamsAndFunctions {
+  pub data: VecList<(StreamID, VecList<FunctionID>)>
+}
 message_data!{ResetSpoolingStreamsAndFunctions, true, 2, 43}
 
 /// ## S2F44
@@ -1252,7 +1331,9 @@ message_data!{ResetSpoolingStreamsAndFunctions, true, 2, 43}
 /// [STRID]:  StreamID
 /// [STRACK]: SpoolStreamAcknowledgeCode
 /// [FCNID]:  FunctionID
-pub struct ResetSpoolingAcknowledge(pub (ResetSpoolingAcknowledgeCode, VecList<(StreamID, SpoolStreamAcknowledgeCode, VecList<FunctionID>)>));
+pub struct ResetSpoolingAcknowledge {
+  pub data: (ResetSpoolingAcknowledgeCode, VecList<(StreamID, SpoolStreamAcknowledgeCode, VecList<FunctionID>)>)
+}
 message_data!{ResetSpoolingAcknowledge, false, 2, 44}
 
 /// ## S2F45
@@ -1295,7 +1376,9 @@ message_data!{ResetSpoolingAcknowledge, false, 2, 44}
 /// [LIMITID]: LimitID
 /// [UPPERDB]: UpperDeadband
 /// [LOWERDB]: LowerDeadband
-pub struct DefineVariableLimitAttributes(pub (DataID, VecList<(VariableID, VecList<(LimitID, OptionItem<(UpperDeadband, LowerDeadband)>)>)>));
+pub struct DefineVariableLimitAttributes {
+  pub data: (DataID, VecList<(VariableID, VecList<(LimitID, OptionItem<(UpperDeadband, LowerDeadband)>)>)>)
+}
 message_data!{DefineVariableLimitAttributes, true, 2, 45}
 
 /// ## S2F46
@@ -1340,7 +1423,9 @@ message_data!{DefineVariableLimitAttributes, true, 2, 45}
 /// [LVACK]:    VariableLimitDefinitonAcknowledgeCode
 /// [LIMITID]:  LimitID
 /// [LIMITACK]: VariableLimitAttributeSetAcknowledgeCode
-pub struct VariableLimitAttributeAcknowledge(pub (VariableLimitAttributeAcknowledgeCode, VecList<(VariableID, VariableLimitDefinitonAcknowledgeCode, OptionItem<(LimitID, VariableLimitAttributeSetAcknowledgeCode)>)>));
+pub struct VariableLimitAttributeAcknowledge {
+  pub data: (VariableLimitAttributeAcknowledgeCode, VecList<(VariableID, VariableLimitDefinitonAcknowledgeCode, OptionItem<(LimitID, VariableLimitAttributeSetAcknowledgeCode)>)>)
+}
 message_data!{VariableLimitAttributeAcknowledge, false, 2, 46}
 
 /// ## S2F47
@@ -1368,7 +1453,9 @@ message_data!{VariableLimitAttributeAcknowledge, false, 2, 46}
 /// attributes.
 /// 
 /// [VID]: VariableID
-pub struct VariableLimitAttributeRequest(pub VecList<VariableID>);
+pub struct VariableLimitAttributeRequest {
+  pub data: VecList<VariableID>
+}
 message_data!{VariableLimitAttributeRequest, true, 2, 47}
 
 /// ## S2F48
@@ -1415,7 +1502,9 @@ message_data!{VariableLimitAttributeRequest, true, 2, 47}
 /// [LIMITID]:  LimitID
 /// [UPPERDB]:  UpperDeadband
 /// [LOWERDB]:  LowerDeadband
-pub struct VariableLimitAttributeSend(pub VecList<(VariableID, OptionItem<(Units, LimitMinimum, LimitMaximum, VecList<(LimitID, UpperDeadband, LowerDeadband)>)>)>);
+pub struct VariableLimitAttributeSend {
+  pub data: VecList<(VariableID, OptionItem<(Units, LimitMinimum, LimitMaximum, VecList<(LimitID, UpperDeadband, LowerDeadband)>)>)>
+}
 message_data!{VariableLimitAttributeSend, false, 2, 48}
 
 /// ## S2F49
@@ -1451,7 +1540,9 @@ message_data!{VariableLimitAttributeSend, false, 2, 48}
 /// [RCMD]:    RemoteCommand
 /// [CPNAME]:  CommandParameterName
 /// [CEPVAL]:  CommandEnhancedParameterValue
-pub struct EnhancedRemoteCommand(pub (DataID, ObjectSpecifier, RemoteCommand, VecList<(CommandParameterName, CommandEnhancedParameterValue)>));
+pub struct EnhancedRemoteCommand {
+  pub data: (DataID, ObjectSpecifier, RemoteCommand, VecList<(CommandParameterName, CommandEnhancedParameterValue)>)
+}
 message_data!{EnhancedRemoteCommand, true, 2, 49}
 
 /// ## S2F50
@@ -1485,5 +1576,7 @@ message_data!{EnhancedRemoteCommand, true, 2, 49}
 /// [HCACK]:  HostCommandAcknowledgeCode
 /// [CPNAME]: CommandParameterName
 /// [CEPACK]: CommandEnhancedParameterAcknowledgeCode
-pub struct EnhancedRemoteCommandAcknowledge(pub (HostCommandAcknowledgeCode, VecList<(CommandParameterName, CommandParameterAcknowledgeCode)>));
+pub struct EnhancedRemoteCommandAcknowledge {
+  pub data: (HostCommandAcknowledgeCode, VecList<(CommandParameterName, CommandParameterAcknowledgeCode)>)
+}
 message_data!{EnhancedRemoteCommandAcknowledge, false, 2, 50}

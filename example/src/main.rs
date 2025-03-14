@@ -88,10 +88,12 @@ fn test_equipment() {
             (true, 1, 1) => {
               match s1::AreYouThere::try_from(request) {
                 Ok(_) => {
-                  s1::OnLineDataEquipment((
-                    ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
-                    SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
-                  )).into()
+                  s1::OnLineDataEquipment {
+                    data: (
+                      ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
+                      SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
+                    )
+                  }.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -100,10 +102,10 @@ fn test_equipment() {
               match s1::SelectedEquipmentStatusRequest::try_from(request) {
                 Ok(s1f3) => {
                   let mut vec = vec![];
-                  for _svid in s1f3.0.0 {
+                  for _svid in s1f3.data.0 {
                     vec.push(StatusVariableValue::List(vec![Item::u4(10)]));
                   }
-                  s1::SelectedEquipmentStatusData(VecList(vec)).into()
+                  s1::SelectedEquipmentStatusData {data: VecList(vec)}.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -112,10 +114,10 @@ fn test_equipment() {
               match s1::StatusVariableNamelistRequest::try_from(request) {
                 Ok(s1f11) => {
                   let mut vec = vec![];
-                  for svid in s1f11.0.0 {
+                  for svid in s1f11.data.0 {
                     vec.push((svid, StatusVariableName(vec![]), Units(vec![])));
                   }
-                  s1::StatusVariableNamelistReply(VecList(vec)).into()
+                  s1::StatusVariableNamelistReply {data: VecList(vec)}.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -123,12 +125,14 @@ fn test_equipment() {
             (true, 1, 13) => {
               match s1::HostCR::try_from(request) {
                 Ok(_s1f13) => {
-                  s1::EquipmentCRA((
-                    CommAck::Accepted, (
-                      ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
-                      SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
+                  s1::EquipmentCRA {
+                    data: (
+                      CommAck::Accepted, (
+                        ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
+                        SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
+                      )
                     )
-                  )).into()
+                  }.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -136,7 +140,7 @@ fn test_equipment() {
             (true, 1, 17) => {
               match s1::RequestOnLine::try_from(request) {
                 Ok(_s1f17) => {
-                  s1::OnLineAck(OnLineAcknowledge::Accepted).into()
+                  s1::OnLineAck {data: OnLineAcknowledge::Accepted}.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -145,10 +149,10 @@ fn test_equipment() {
               match s1::DataVariableNamelistRequest::try_from(request) {
                 Ok(s1f21) => {
                   let mut vec = vec![];
-                  for vid in s1f21.0.0 {
+                  for vid in s1f21.data.0 {
                     vec.push((vid, DataVariableValueName(vec![]), Units(vec![])));
                   }
-                  s1::DataVariableNamelist(VecList(vec)).into()
+                  s1::DataVariableNamelist {data: VecList(vec)}.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -157,10 +161,10 @@ fn test_equipment() {
               match s1::CollectionEventNamelistRequest::try_from(request) {
                 Ok(s1f11) => {
                   let mut vec = vec![];
-                  for ceid in s1f11.0.0 {
+                  for ceid in s1f11.data.0 {
                     vec.push((ceid, CollectionEventName(vec![]), VecList(vec![])));
                   }
-                  s1::CollectionEventNamelist(VecList(vec)).into()
+                  s1::CollectionEventNamelist {data: VecList(vec)}.into()
                 },
                 Err(_) => s1::Abort.into(),
               }
@@ -169,10 +173,10 @@ fn test_equipment() {
               match s2::EquipmentConstantRequest::try_from(request) {
                 Ok(s2f13) => {
                   let mut vec = vec![];
-                  for _ecid in s2f13.0.0 {
+                  for _ecid in s2f13.data.0 {
                     vec.push(OptionItem::<EquipmentConstantValue>(None));
                   }
-                  s2::EquipmentConstantData(VecList(vec)).into()
+                  s2::EquipmentConstantData {data: VecList(vec)}.into()
                 }
                 Err(_) => s2::Abort.into(),
               }
@@ -181,7 +185,7 @@ fn test_equipment() {
               match s2::EquipmentConstantNamelistRequest::try_from(request) {
                 Ok(s2f29) => {
                   let mut vec = vec![];
-                  for ecid in s2f29.0.0 {
+                  for ecid in s2f29.data.0 {
                     vec.push((
                       ecid,
                       EquipmentConstantName(vec![]),
@@ -191,7 +195,7 @@ fn test_equipment() {
                       Units(vec![])
                     ))
                   }
-                  s2::EquipmentConstantNamelist(VecList(vec)).into()
+                  s2::EquipmentConstantNamelist {data: VecList(vec)}.into()
                 },
                 Err(_) => s2::Abort.into(),
               }

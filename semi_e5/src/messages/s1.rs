@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -91,7 +91,9 @@ message_headeronly!{AreYouThere, true, 1, 1}
 /// #### Structure
 /// 
 /// - List - 0
-pub struct OnLineDataHost(pub ());
+pub struct OnLineDataHost {
+  pub data: ()
+}
 message_data!{OnLineDataHost, false, 1, 2}
 
 /// ## S1F2E
@@ -116,7 +118,9 @@ message_data!{OnLineDataHost, false, 1, 2}
 /// 
 /// [MDLN]:    ModelName
 /// [SOFTREV]: SoftwareRevision
-pub struct OnLineDataEquipment(pub (ModelName, SoftwareRevision));
+pub struct OnLineDataEquipment {
+  pub data: (ModelName, SoftwareRevision)
+}
 message_data!{OnLineDataEquipment, false, 1, 2}
 
 /// ## S1F3
@@ -141,7 +145,9 @@ message_data!{OnLineDataEquipment, false, 1, 2}
 /// A zero-length list means to report all SVIDs.
 /// 
 /// [SVID]: StatusVariableID
-pub struct SelectedEquipmentStatusRequest(pub VecList<StatusVariableID>);
+pub struct SelectedEquipmentStatusRequest {
+  pub data: VecList<StatusVariableID>
+}
 message_data!{SelectedEquipmentStatusRequest, true, 1, 3}
 
 /// ## S1F4
@@ -171,7 +177,9 @@ message_data!{SelectedEquipmentStatusRequest, true, 1, 3}
 /// 
 /// [SV]:   StatusVariableValue
 /// [SVID]: StatusVariableID
-pub struct SelectedEquipmentStatusData(pub VecList<StatusVariableValue>);
+pub struct SelectedEquipmentStatusData {
+  pub data: VecList<StatusVariableValue>
+}
 message_data!{SelectedEquipmentStatusData, false, 1, 4}
 
 /// ## S1F5
@@ -194,7 +202,9 @@ message_data!{SelectedEquipmentStatusData, false, 1, 4}
 /// - [SFCD]
 /// 
 /// [SFCD]: StatusFormCode
-pub struct FormattedStatusRequest(pub StatusFormCode);
+pub struct FormattedStatusRequest {
+  pub data: StatusFormCode
+}
 message_data!{FormattedStatusRequest, true, 1, 5}
 
 /// ## S1F6
@@ -218,7 +228,9 @@ message_data!{FormattedStatusRequest, true, 1, 5}
 /// A zero-length item means that no report can be made.
 /// 
 /// [SFCD]: StatusFormCode
-pub struct FormattedStatusData(pub Item);
+pub struct FormattedStatusData {
+  pub data: Item
+}
 message_item!{FormattedStatusData, false, 1, 6}
 
 /// ## S1F7
@@ -241,7 +253,9 @@ message_item!{FormattedStatusData, false, 1, 6}
 /// 
 /// [S1F6]: FormattedStatusData
 /// [SFCD]: StatusFormCode
-pub struct FixedFormRequest(pub StatusFormCode);
+pub struct FixedFormRequest {
+  pub data: StatusFormCode
+}
 message_data!{FixedFormRequest, true, 1, 7}
 
 /// ## S1F8
@@ -267,7 +281,9 @@ message_data!{FixedFormRequest, true, 1, 7}
 /// A zero-length item means the form is unavailable.
 /// 
 /// [S1F6]: FormattedStatusData
-pub struct FixedFormData(pub Item);
+pub struct FixedFormData {
+  pub data: Item
+}
 message_item!{FixedFormData, false, 1, 8}
 
 /// ## S1F9
@@ -315,7 +331,9 @@ message_headeronly!{MaterialTransferStatusRequest, true, 1, 9}
 /// 
 /// [TSIP]: TransferStatusInputPort
 /// [TSOP]: TransferStatusOutputPort
-pub struct MaterialTransferStatusData(pub OptionItem<(Vec<TransferStatusInputPort>, Vec<TransferStatusOutputPort>)>);
+pub struct MaterialTransferStatusData {
+  pub data: OptionItem<(Vec<TransferStatusInputPort>, Vec<TransferStatusOutputPort>)>
+}
 message_data!{MaterialTransferStatusData, false, 1, 10}
 
 /// ## S1F11
@@ -341,7 +359,9 @@ message_data!{MaterialTransferStatusData, false, 1, 10}
 /// Zero-length N is a request to report all [SVID]s.
 /// 
 /// [SVID]: StatusVariableID
-pub struct StatusVariableNamelistRequest(pub VecList<StatusVariableID>);
+pub struct StatusVariableNamelistRequest {
+  pub data: VecList<StatusVariableID>
+}
 message_data!{StatusVariableNamelistRequest, true, 1, 11}
 
 /// ## S1F12
@@ -373,7 +393,9 @@ message_data!{StatusVariableNamelistRequest, true, 1, 11}
 /// [SVID]:   StatusVariableID
 /// [SVNAME]: StatusVariableName
 /// [UNITS]:  Units
-pub struct StatusVariableNamelistReply(pub VecList<(StatusVariableID, StatusVariableName, Units)>);
+pub struct StatusVariableNamelistReply {
+  pub data: VecList<(StatusVariableID, StatusVariableName, Units)>
+}
 message_data!{StatusVariableNamelistReply, false, 1, 12}
 
 /// ## S1F13H
@@ -407,7 +429,9 @@ message_data!{StatusVariableNamelistReply, false, 1, 12}
 /// 
 /// [S1F13]: HostCR
 /// [S1F14]: EquipmentCRA
-pub struct HostCR(pub ());
+pub struct HostCR {
+  pub data: ()
+}
 message_data!{HostCR, true, 1, 13}
 
 /// ## S1F13E
@@ -445,7 +469,9 @@ message_data!{HostCR, true, 1, 13}
 /// [S1F14]:   HostCRA
 /// [MDLN]:    ModelName
 /// [SOFTREV]: SoftwareRevision
-pub struct EquipmentCR(pub (ModelName, SoftwareRevision));
+pub struct EquipmentCR {
+  pub data: (ModelName, SoftwareRevision)
+}
 message_data!{EquipmentCR, true, 1, 13}
 
 /// ## S1F14H
@@ -470,7 +496,9 @@ message_data!{EquipmentCR, true, 1, 13}
 /// 
 /// [S1F13]:   EquipmentCR
 /// [COMMACK]: CommAck
-pub struct HostCRA(pub (CommAck, ()));
+pub struct HostCRA {
+  pub data: (CommAck, ())
+}
 message_data!{HostCRA, false, 1, 14}
 
 /// ## S1F14E
@@ -502,7 +530,9 @@ message_data!{HostCRA, false, 1, 14}
 /// [COMMACK]: CommAck
 /// [MDLN]:    ModelName
 /// [SOFTREV]: SoftwareRevision
-pub struct EquipmentCRA(pub (CommAck, (ModelName, SoftwareRevision)));
+pub struct EquipmentCRA {
+  pub data: (CommAck, (ModelName, SoftwareRevision))
+}
 message_data!{EquipmentCRA, false, 1, 14}
 
 /// ## S1F15
@@ -545,7 +575,9 @@ message_headeronly!{RequestOffLine, true, 1, 15}
 /// [OFLACK]
 /// 
 /// [OFLACK]: OffLineAcknowledge
-pub struct OffLineAck(pub OffLineAcknowledge);
+pub struct OffLineAck {
+  pub data: OffLineAcknowledge
+}
 message_data!{OffLineAck, false, 1, 16}
 
 /// ## S1F17
@@ -587,7 +619,9 @@ message_headeronly!{RequestOnLine, true, 1, 17}
 /// [ONLACK]
 /// 
 /// [ONLACK]: OnLineAcknowledge
-pub struct OnLineAck(pub OnLineAcknowledge);
+pub struct OnLineAck {
+  pub data: OnLineAcknowledge
+}
 message_data!{OnLineAck, false, 1, 16}
 
 /// ## S1F19
@@ -623,7 +657,9 @@ message_data!{OnLineAck, false, 1, 16}
 /// [OBJTYPE]: ObjectType
 /// [OBJID]:   ObjectID
 /// [ATTRID]:  AttributeID
-pub struct GetAttribute(pub (ObjectType, VecList<ObjectID>, VecList<AttributeID>));
+pub struct GetAttribute {
+  pub data: (ObjectType, VecList<ObjectID>, VecList<AttributeID>)
+}
 message_data!{GetAttribute, true, 1, 19}
 
 /// ## S1F20
@@ -668,7 +704,9 @@ message_data!{GetAttribute, true, 1, 19}
 /// [ERRTEXT]:  ErrorText
 /// [OBJTYPE]:  ObjectType
 /// [ATTRID]:   AttributeID
-pub struct AttributeData(pub (VecList<VecList<AttributeValue>>, VecList<(ErrorCode, ErrorText)>));
+pub struct AttributeData {
+  pub data: (VecList<VecList<AttributeValue>>, VecList<(ErrorCode, ErrorText)>)
+}
 message_data!{AttributeData, false, 1, 20}
 
 /// ## S1F21
@@ -695,7 +733,9 @@ message_data!{AttributeData, false, 1, 20}
 /// [VID]s are limited to those of 'DVVAL' class variables only.
 /// 
 /// [VID]: VariableID
-pub struct DataVariableNamelistRequest(pub VecList<VariableID>);
+pub struct DataVariableNamelistRequest {
+  pub data: VecList<VariableID>
+}
 message_data!{DataVariableNamelistRequest, true, 1, 21}
 
 /// ## S1F22
@@ -732,7 +772,9 @@ message_data!{DataVariableNamelistRequest, true, 1, 21}
 /// [VID]:       VariableID
 /// [DVVALNAME]: DataVariableValueName
 /// [UNITS]:     Units
-pub struct DataVariableNamelist(pub VecList<(VariableID, DataVariableValueName, Units)>);
+pub struct DataVariableNamelist {
+  pub data: VecList<(VariableID, DataVariableValueName, Units)>
+}
 message_data!{DataVariableNamelist, false, 1, 22}
 
 /// ## S1F23
@@ -757,7 +799,9 @@ message_data!{DataVariableNamelist, false, 1, 22}
 /// Zero-length N is a request for to send information for all [CEID]s.
 /// 
 /// [CEID]: CollectionEventID
-pub struct CollectionEventNamelistRequest(pub VecList<CollectionEventID>);
+pub struct CollectionEventNamelistRequest {
+  pub data: VecList<CollectionEventID>
+}
 message_data!{CollectionEventNamelistRequest, true, 1, 23}
 
 /// ## S1F24
@@ -798,5 +842,7 @@ message_data!{CollectionEventNamelistRequest, true, 1, 23}
 /// [CEID]:   CollectionEventID
 /// [CENAME]: CollectionEventName
 /// [VID]:    VariableID
-pub struct CollectionEventNamelist(pub VecList<(CollectionEventID, CollectionEventName, VecList<VariableID>)>);
+pub struct CollectionEventNamelist {
+  pub data: VecList<(CollectionEventID, CollectionEventName, VecList<VariableID>)>
+}
 message_data!{CollectionEventNamelist, false, 1, 24}

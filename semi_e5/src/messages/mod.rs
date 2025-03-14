@@ -91,58 +91,6 @@ macro_rules! message_headeronly {
   }
 }
 
-/// ## MESSAGE MACRO: DATA
-/// 
-/// To be used with particular messages that contain arbitrary data.
-/// 
-/// ----------------------------------------------------------------------------
-/// 
-/// #### Arguments
-/// 
-/// - **$name**: Name of struct.
-/// - **$w**: W-bit of message.
-/// - **$stream**: Stream of message.
-/// - **$function**: Function of message.
-/// 
-/// ----------------------------------------------------------------------------
-/// 
-/// #### Expansion
-/// 
-/// - From\<$name\> for Message
-/// - TryFrom\<Message\> for $name
-macro_rules! message_data {
-  (
-    $name:ident,
-    $w:expr,
-    $stream:expr,
-    $function:expr
-  ) => {
-    impl From<$name> for Message {
-      fn from(value: $name) -> Self {
-        Message {
-          stream:   $stream,
-          function: $function,
-          w:        $w,
-          text:     Some(value.0.into()),
-        }
-      }
-    }
-    impl TryFrom<Message> for $name {
-      type Error = Error;
-
-      fn try_from(message: Message) -> Result<Self, Self::Error> {
-        if message.stream   != $stream   {return Err(WrongStream)}
-        if message.function != $function {return Err(WrongFunction)}
-        if message.w        != $w        {return Err(WrongReply)}
-        match message.text {
-          Some(item) => {Ok(Self(item.try_into()?))},
-          None => Err(WrongFormat),
-        }
-      }
-    }
-  }
-}
-
 /// ## MESSAGE MACRO: ITEM
 /// 
 /// To be used with particular messages that contain just an Item.
@@ -175,7 +123,7 @@ macro_rules! message_item {
           stream:   $stream,
           function: $function,
           w:        $w,
-          text:     Some(value.0.into()),
+          text:     Some(value.data.into()),
         }
       }
     }
@@ -187,7 +135,108 @@ macro_rules! message_item {
         if message.function != $function {return Err(WrongFunction)}
         if message.w        != $w        {return Err(WrongReply)}
         match message.text {
-          Some(item) => {Ok(Self(item))},
+          Some(item) => {Ok(Self{data: item})},
+          None => Err(WrongFormat),
+        }
+      }
+    }
+  }
+}
+
+/// ## MESSAGE MACRO: DATA
+/// 
+/// To be used with particular messages that contain arbitrary data.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Arguments
+/// 
+/// - **$name**: Name of struct.
+/// - **$w**: W-bit of message.
+/// - **$stream**: Stream of message.
+/// - **$function**: Function of message.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Expansion
+/// 
+/// - From\<$name\> for Message
+/// - TryFrom\<Message\> for $name
+macro_rules! message_data {
+  (
+    $name:ident,
+    $w:expr,
+    $stream:expr,
+    $function:expr
+  ) => {
+    impl From<$name> for Message {
+      fn from(value: $name) -> Self {
+        Message {
+          stream:   $stream,
+          function: $function,
+          w:        $w,
+          text:     Some(value.data.into()),
+        }
+      }
+    }
+    impl TryFrom<Message> for $name {
+      type Error = Error;
+
+      fn try_from(message: Message) -> Result<Self, Self::Error> {
+        if message.stream   != $stream   {return Err(WrongStream)}
+        if message.function != $function {return Err(WrongFunction)}
+        if message.w        != $w        {return Err(WrongReply)}
+        match message.text {
+          Some(item) => {Ok(Self{data: item.try_into()?})},
+          None => Err(WrongFormat),
+        }
+      }
+    }
+  }
+}
+
+/// ## MESSAGE MACRO: DATA
+/// 
+/// To be used with particular messages that contain arbitrary data.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Arguments
+/// 
+/// - **$name**: Name of struct.
+/// - **$stream**: Stream of message.
+/// - **$function**: Function of message.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Expansion
+/// 
+/// - From\<$name\> for Message
+/// - TryFrom\<Message\> for $name
+macro_rules! message_data_reply {
+  (
+    $name:ident,
+    $stream:expr,
+    $function:expr
+  ) => {
+    impl From<$name> for Message {
+      fn from(value: $name) -> Self {
+        Message {
+          stream:   $stream,
+          function: $function,
+          w:        value.reply,
+          text:     Some(value.data.into()),
+        }
+      }
+    }
+    impl TryFrom<Message> for $name {
+      type Error = Error;
+
+      fn try_from(message: Message) -> Result<Self, Self::Error> {
+        if message.stream   != $stream   {return Err(WrongStream)}
+        if message.function != $function {return Err(WrongFunction)}
+        match message.text {
+          Some(item) => {Ok(Self{data: item.try_into()?, reply: message.w})},
           None => Err(WrongFormat),
         }
       }
