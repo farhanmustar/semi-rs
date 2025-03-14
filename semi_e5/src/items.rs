@@ -43,7 +43,7 @@
 //!   elements.
 //! - Rust's Native Tuple Types (A, B, ...): Used to represent a [List] with a
 //!   set number of elements of heterogeneous structure.
-//!    - Currently, only Tuples of length up to 6 are supported.
+//!    - Currently, only Tuples of length up to 7 are supported.
 //! 
 //! [Optional Item]:   OptionItem
 //! [Vectorized List]: VecList
@@ -376,6 +376,63 @@ impl <
       value.3.into(),
       value.4.into(),
       value.5.into(),
+    ])
+  }
+}
+
+/// ## ITEM -> HETEROGENEOUS LIST (7 ELEMENTS)
+impl <
+  A: TryFrom<Item, Error = Error>,
+  B: TryFrom<Item, Error = Error>,
+  C: TryFrom<Item, Error = Error>,
+  D: TryFrom<Item, Error = Error>,
+  E: TryFrom<Item, Error = Error>,
+  F: TryFrom<Item, Error = Error>,
+  G: TryFrom<Item, Error = Error>,
+> TryFrom<Item> for (A, B, C, D, E, F, G) {
+  type Error = Error;
+
+  fn try_from(item: Item) -> Result<Self, Self::Error> {
+    match item {
+      Item::List(list) => {
+        if list.len() == 6 {
+          Ok((
+            list[0].clone().try_into()?,
+            list[1].clone().try_into()?,
+            list[2].clone().try_into()?,
+            list[3].clone().try_into()?,
+            list[4].clone().try_into()?,
+            list[5].clone().try_into()?,
+            list[6].clone().try_into()?,
+          ))
+        } else {
+          Err(Error::WrongFormat)
+        }
+      },
+      _ => Err(Error::WrongFormat),
+    }
+  }
+}
+
+/// ## HETEROGENEOUS LIST (7 ELEMENTS) -> ITEM
+impl <
+  A: Into<Item>,
+  B: Into<Item>,
+  C: Into<Item>,
+  D: Into<Item>,
+  E: Into<Item>,
+  F: Into<Item>,
+  G: Into<Item>,
+> From<(A, B, C, D, E, F, G)> for Item {
+  fn from(value: (A, B, C, D, E, F, G)) -> Self {
+    Item::List(vec![
+      value.0.into(),
+      value.1.into(),
+      value.2.into(),
+      value.3.into(),
+      value.4.into(),
+      value.5.into(),
+      value.6.into(),
     ])
   }
 }
@@ -748,13 +805,16 @@ singleformat_vec!{AnyBinaryString, Bin}
 
 /// ## ACCESSMODE
 /// 
-/// Load Port Access Mode
+/// **Load Port Access Mode**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
 /// #### Used By
 /// 
-/// - S3F21, S3F27
+/// - [S3F21], [S3F27]
+/// 
+/// [S3F21]: crate::messages::s3::PortGroupDefinition
+/// [S3F27]: crate::messages::s3::ChangeAccess
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum AccessMode {
@@ -808,7 +868,11 @@ singleformat!{AcknowledgeAny, Bool}
 /// 
 /// #### Used By
 /// 
-/// - S3F6, S3F8, S3F10
+/// - [S3F6], [S3F8], [S3F10]
+/// 
+/// [S3F6]:  crate::messages::s3::MaterialFoundAcknowledge
+/// [S3F8]:  crate::messages::s3::MaterialLostAcknowledge
+/// [S3F10]: crate::messages::s3::MaterialIDEquateAcknowledge
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum AcknowledgeCode3 {
@@ -953,13 +1017,14 @@ singleformat_vec!{AlarmText, Ascii, 0..=120, Char}
 /// #### Used By
 /// 
 /// - [S1F20]
-/// - S3F17, S3F35
+/// - [S3F35]
 /// - S13F13, S13F16
 /// - S14F1, S14F2, S14F3, S14F4, S14F9, S14F10, S14F11, S14F12, S14F13,
 ///   S14F14, S14F15, S14F16, S14F17, S14F18, S14F19
 /// - S18F1, S18F3
 /// 
 /// [S1F20]: crate::messages::s1::AttributeData
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
 pub enum AttributeValue {
   List(Vec<Item>),
   Bin(Vec<u8>),
@@ -987,13 +1052,14 @@ multiformat_vec!{AttributeValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2,
 /// #### Used By
 /// 
 /// - [S1F19]
-/// - S3F17, S3F35
+/// - [S3F35]
 /// - S13F13, S13F16
 /// - S14F1, S14F2, S14F3, S14F4, S14F8, S14F9, S14F10, S14F11, S14F12,
 ///   S14F13, S14F14, S14F15, S14F16, S14F17, S14F18, S14F19
 /// - S18F1, S18F3
 /// 
 /// [S1F19]: crate::messages::s1::GetAttribute
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
 pub enum AttributeID {
   Ascii(Vec<Char>),
   U1(u8),
@@ -1187,7 +1253,18 @@ singleformat_vec!{BootProgramData, Bin}
 /// 
 /// #### Used By
 /// 
-/// - S3F18, S3F20, S3F22, S3F24, S3F26, S3F28, S3F30, S3F32, S3F34
+/// - [S3F18], [S3F20], [S3F22], [S3F24], [S3F26], [S3F28], [S3F30], [S3F32],
+///   [S3F34]
+/// 
+/// [S3F18]: crate::messages::s3::CarrierActionAcknowledge
+/// [S3F20]: crate::messages::s3::CancelAllCarrierOutAcknowledge
+/// [S3F22]: crate::messages::s3::PortGroupDefinitionAcknowledge
+/// [S3F24]: crate::messages::s3::PortGroupActionAcknowledge
+/// [S3F26]: crate::messages::s3::PortActionAcknowledge
+/// [S3F28]: crate::messages::s3::ChangeAccessAcknowledge
+/// [S3F30]: crate::messages::s3::CarrierTagReadData
+/// [S3F32]: crate::messages::s3::CarrierTagWriteDataAcknowledge
+/// [S3F34]: crate::messages::s3::CancelAllPodOutAcknowledge
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum CarrierActionAcknowledgeCode {
@@ -1209,7 +1286,9 @@ singleformat_enum!{CarrierActionAcknowledgeCode, U1}
 /// 
 /// #### Used By
 /// 
-/// - S3F17
+/// - [S3F17]
+/// 
+/// [S3F17]: crate::messages::s3::CarrierActionRequest
 #[derive(Clone, Debug)]
 pub struct CarrierAction(pub Vec<Char>);
 singleformat_vec!{CarrierAction, Ascii}
@@ -1222,25 +1301,34 @@ singleformat_vec!{CarrierAction, Ascii}
 /// 
 /// #### Used By
 /// 
-/// - S3F17, S16F11, S16F15
+/// - [S3F17]
+/// - S16F11, S16F15
+/// 
+/// [S3F17]: crate::messages::s3::CarrierActionRequest
 #[derive(Clone, Debug)]
 pub struct CarrierID(pub Vec<Char>);
 singleformat_vec!{CarrierID, Ascii}
 
 /// ## CARRIERSPEC
 /// 
-/// The object specifier for a carrier.
+/// **Carrier Specifier**
 /// 
-/// TODO: Make this conform to OBJSPEC requirements, seems related to E39.
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
 /// 
 /// ----------------------------------------------------------------------------
 /// 
 /// #### Used By
 /// 
-/// - S3F29, S3F31
-#[derive(Clone, Debug)]
-pub struct CarrierSpecifier(pub Vec<Char>);
-singleformat_vec!{CarrierSpecifier, Ascii}
+/// - [S3F29], [S3F31]
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+/// [S3F29]:   crate::messages::s3::CarrierTagReadRequest
+/// [S3F31]:   crate::messages::s3::CarrierTagWriteDataRequest
+pub type CarrierSpecifier = ObjectSpecifier;
 
 /// ## CATTRDATA
 /// 
@@ -1256,26 +1344,11 @@ singleformat_vec!{CarrierSpecifier, Ascii}
 /// 
 /// #### Used By
 /// 
-/// - S3F17
+/// - [S3F17]
 /// 
 /// [ATTRDATA]: AttributeValue
-pub enum CarrierAttributeValue {
-  List(Vec<Item>),
-  Bin(Vec<u8>),
-  Bool(Vec<bool>),
-  Ascii(Vec<Char>),
-  I1(Vec<i8>),
-  I2(Vec<i16>),
-  I4(Vec<i32>),
-  I8(Vec<i64>),
-  U1(Vec<u8>),
-  U2(Vec<u16>),
-  U4(Vec<u32>),
-  U8(Vec<u64>),
-  F4(Vec<f32>),
-  F8(Vec<f64>),
-}
-multiformat_vec!{CarrierAttributeValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
+/// [S3F17]:    crate::messages::s3::CarrierActionRequest
+pub type CarrierAttributeValue = AttributeValue;
 
 /// ## CATTRID
 /// 
@@ -1285,7 +1358,9 @@ multiformat_vec!{CarrierAttributeValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, 
 /// 
 /// #### Used By
 /// 
-/// - S3F17
+/// - [S3F17]
+/// 
+/// [S3F17]: crate::messages::s3::CarrierActionRequest
 #[derive(Clone, Debug)]
 pub struct CarrierAttributeID(pub Vec<Char>);
 singleformat_vec!{CarrierAttributeID, Ascii}
@@ -1808,8 +1883,11 @@ singleformat_enum!{ControlJobCommand, U1}
 /// 
 /// #### Used By
 /// 
-/// - S3F30, S3F31
+/// - [S3F30], [S3F31]
 /// - S18F6, S18F7
+/// 
+/// [S3F30]: crate::messages::s3::CarrierTagReadData
+/// [S3F31]: crate::messages::s3::CarrierTagWriteDataRequest
 #[derive(Clone, Debug)]
 pub struct Data(pub Vec<Char>);
 singleformat_vec!{Data, Ascii}
@@ -1841,7 +1919,7 @@ singleformat_enum!{DataAcknowledge, Bin}
 /// #### Used By
 /// 
 /// - [S2F33], [S2F35], [S2F39], [S2F45], [S2F49]
-/// - S3F15, S3F17
+/// - [S3F15], [S3F17]
 /// - S4F19, S4F25
 /// - S6F3, S6F5, S6F7, S6F8, S6F9, S6F11, S6F13, S6F16, S6F18, S6F25, S6F27
 /// - S13F11, S13F13, S13F15
@@ -1856,6 +1934,8 @@ singleformat_enum!{DataAcknowledge, Bin}
 /// [S2F39]: crate::messages::s2::MultiBlockInquire
 /// [S2F45]: crate::messages::s2::DefineVariableLimitAttributes
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
+/// [S3F15]: crate::messages::s3::MultiBlockInquire
+/// [S3F17]: crate::messages::s3::CarrierActionRequest
 #[derive(Clone, Debug)]
 pub enum DataID {
   Ascii(Vec<Char>),
@@ -1881,7 +1961,7 @@ multiformat_ascii!{DataID, I1, I2, I4, I8, U1, U2, U4, U8}
 /// #### Used By
 /// 
 /// - [S2F39]
-/// - S3F15, S3F29, S3F31
+/// - [S3F15], [S3F29], [S3F31]
 /// - S4F25
 /// - S6F5
 /// - S13F11
@@ -1891,6 +1971,9 @@ multiformat_ascii!{DataID, I1, I2, I4, I8, U1, U2, U4, U8}
 /// - S19F19
 /// 
 /// [S2F39]: crate::messages::s2::MultiBlockInquire
+/// [S3F15]: crate::messages::s3::MultiBlockInquire
+/// [S3F29]: crate::messages::s3::CarrierTagReadRequest
+/// [S3F31]: crate::messages::s3::CarrierTagWriteDataRequest
 #[derive(Clone, Debug)]
 pub enum DataLength {
   I1(i8),
@@ -1903,6 +1986,31 @@ pub enum DataLength {
   U8(u64),
 }
 multiformat!{DataLength, I1, I2, I4, I8, U1, U2, U4, U8}
+
+/// ## DATASEG
+/// 
+/// **Data Segment**
+/// 
+/// Identifies requested data.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F29], [S3F31]
+/// - S18F5, S18F7
+/// 
+/// [S3F29]: crate::messages::s3::CarrierTagReadRequest
+/// [S3F31]: crate::messages::s3::CarrierTagWriteDataRequest
+#[derive(Clone, Debug)]
+pub struct DataSegment(pub Vec<Char>);
+singleformat_vec!{DataSegment, Ascii}
 
 /// ## DRACK
 /// 
@@ -2037,7 +2145,7 @@ multiformat_vec!{EquipmentConstantDefaultValue, Bin, Bool, Ascii, Jis8, I1, I2, 
 
 /// ## ECID
 /// 
-/// Equipment constant ID.
+/// **Equipment Constant ID**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2065,7 +2173,7 @@ multiformat_ascii!{EquipmentConstantID, I1, I2, I4, I8, U1, U2, U4, U8}
 
 /// ## ECMAX
 /// 
-/// Equipment constant maximum value.
+/// **Equipment Constant Maximum Value**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2094,7 +2202,7 @@ multiformat_vec!{EquipmentConstantMaximumValue, Bin, Bool, Ascii, Jis8, I1, I2, 
 
 /// ## ECMIN
 /// 
-/// Equipment constant minimum value.
+/// **Equipment Constant Minimum Value**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2123,7 +2231,7 @@ multiformat_vec!{EquipmentConstantMinimumValue, Bin, Bool, Ascii, Jis8, I1, I2, 
 
 /// ## ECNAME
 /// 
-/// Equipment constant name.
+/// **Equipment Constant Name**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2137,7 +2245,7 @@ singleformat_vec!{EquipmentConstantName, Ascii}
 
 /// ## ECV
 /// 
-/// Equipment constant value.
+/// **Equipment Constant Value**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2182,7 +2290,9 @@ multiformat_vec!{EquipmentConstantValue, Bin, Bool, Ascii, Jis8, I1, I2, I4, I8,
 /// 
 /// #### Used by
 /// 
-/// - S3F9
+/// - [S3F9]
+/// 
+/// [S3F9]: crate::messages::s3::MaterialIDEquateSend
 pub struct EquivalentMaterialID(Vec<Char>);
 singleformat_vec!(EquivalentMaterialID, Ascii, 0..=16, Char);
 
@@ -2197,8 +2307,8 @@ singleformat_vec!(EquivalentMaterialID, Ascii, 0..=16, Char);
 /// #### Used By
 /// 
 /// - [S1F20]
-/// - S3F18, S3F20, S3F22, S3F24, S3F26, S3F28, S3F30, S3F32,
-///   S3F34, S3F36
+/// - [S3F18], [S3F20], [S3F22], [S3F24], [S3F26], [S3F28], [S3F30], [S3F32],
+///   [S3F34], [S3F36]
 /// - S4F20, S4F22, S4F23, S4F31, S4F33
 /// - S5F14, S5F15, S5F18
 /// - S6F25, S6F30
@@ -2214,6 +2324,16 @@ singleformat_vec!(EquivalentMaterialID, Ascii, 0..=16, Char);
 /// - S17F2, S17F4, S17F6, S17F8, S17F10, S17F12, S17F14
 /// 
 /// [S1F20]: crate::messages::s1::AttributeData
+/// [S3F18]: crate::messages::s3::CarrierActionAcknowledge
+/// [S3F20]: crate::messages::s3::CancelAllCarrierOutAcknowledge
+/// [S3F22]: crate::messages::s3::PortGroupDefinitionAcknowledge
+/// [S3F24]: crate::messages::s3::PortGroupActionAcknowledge
+/// [S3F26]: crate::messages::s3::PortActionAcknowledge
+/// [S3F28]: crate::messages::s3::ChangeAccessAcknowledge
+/// [S3F30]: crate::messages::s3::CarrierTagReadData
+/// [S3F32]: crate::messages::s3::CarrierTagWriteDataAcknowledge
+/// [S3F34]: crate::messages::s3::CancelAllPodOutAcknowledge
+/// [S3F36]: crate::messages::s3::ReticleTransferJobAcknowledge
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u64)]
 pub enum ErrorCode {
@@ -2377,7 +2497,8 @@ singleformat_enum!{EnableDisableEventReportAcknowledgeCode, Bin}
 /// #### Used By
 /// 
 /// - [S1F20]
-/// - S3F18, S3F20, S3F22, S3F24, S3F26, S3F28, S3F30, S3F32, S3F34, S3F36
+/// - [S3F18], [S3F20], [S3F22], [S3F24], [S3F26], [S3F28], [S3F30], [S3F32],
+///   [S3F34], [S3F36]
 /// - S4F20, S4F22, S4F23, S4F31, S4F33
 /// - S5F14, S5F15, S5F18
 /// - S6F25
@@ -2392,6 +2513,16 @@ singleformat_enum!{EnableDisableEventReportAcknowledgeCode, Bin}
 /// 
 /// [ERRCODE]: ErrorCode
 /// [S1F20]:   crate::messages::s1::AttributeData
+/// [S3F18]: crate::messages::s3::CarrierActionAcknowledge
+/// [S3F20]: crate::messages::s3::CancelAllCarrierOutAcknowledge
+/// [S3F22]: crate::messages::s3::PortGroupDefinitionAcknowledge
+/// [S3F24]: crate::messages::s3::PortGroupActionAcknowledge
+/// [S3F26]: crate::messages::s3::PortActionAcknowledge
+/// [S3F28]: crate::messages::s3::ChangeAccessAcknowledge
+/// [S3F30]: crate::messages::s3::CarrierTagReadData
+/// [S3F32]: crate::messages::s3::CarrierTagWriteDataAcknowledge
+/// [S3F34]: crate::messages::s3::CancelAllPodOutAcknowledge
+/// [S3F36]: crate::messages::s3::ReticleTransferJobAcknowledge
 #[derive(Clone, Debug)]
 pub struct ErrorText(Vec<Char>);
 singleformat_vec!{ErrorText, Ascii, 0..=120, Char}
@@ -2420,7 +2551,7 @@ singleformat!{FunctionID, U1}
 /// #### Used By
 /// 
 /// - [S2F2], [S2F40]
-/// - S3F16
+/// - [S3F16]
 /// - S4F26
 /// - S13F12
 /// - S14F24
@@ -2429,6 +2560,7 @@ singleformat!{FunctionID, U1}
 /// 
 /// [S2F2]:  crate::messages::s2::ServiceProgramLoadGrant
 /// [S2F40]: crate::messages::s2::MultiBlockGrant
+/// [S3F16]: crate::messages::s3::MultiBlockGrant
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Grant {
@@ -2469,6 +2601,50 @@ pub enum HostCommandAcknowledgeCode {
   ObjectDoesNotExist = 6,
 }
 singleformat_enum!{HostCommandAcknowledgeCode, Bin}
+
+/// ## INPTN
+/// 
+/// **Input Port Number**
+/// 
+/// Specialized version of [PTN] indicating the input port.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [PTN].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [PTN]:   PortNumber
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
+pub type InputPortNumber = PortNumber;
+
+/// ## JOBACTION
+/// 
+/// **Job Action**
+/// 
+/// Specifies the action of a reticle transfer job.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
+pub struct JobAction(pub Vec<Char>);
+singleformat_vec!{JobAction, Ascii}
 
 /// ## LENGTH
 /// 
@@ -2618,7 +2794,7 @@ multiformat_vec!{LimitMinimum, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, 
 
 /// ## LOC
 /// 
-/// Machine material location code.
+/// **Machine Material Location Code**
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -2631,11 +2807,35 @@ multiformat_vec!{LimitMinimum, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, 
 /// #### Used By
 /// 
 /// - [S2F27]
-/// - S3F2
+/// - [S3F2]
 /// 
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
+/// [S3F2]:  crate::messages::s3::MaterialStatusData
+#[derive(Clone, Copy, Debug)]
 pub struct LocationCode(pub u8);
 singleformat!{LocationCode, Bin}
+
+/// ## LOCID
+/// 
+/// **Material Location Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F29], [S3F31]
+/// 
+/// [S3F29]: crate::messages::s3::CarrierTagReadRequest
+/// [S3F31]: crate::messages::s3::CarrierTagWriteDataRequest
+#[derive(Clone, Debug)]
+pub struct LocationID(pub Vec<Char>);
+singleformat_vec!{LocationID, Ascii}
 
 /// ## LOWERDB
 /// 
@@ -2760,8 +2960,13 @@ singleformat_vec!{ModelName, Ascii, 0..=20, Char}
 /// 
 /// #### Used By
 /// 
-/// - S3F2, S3F4, S3F5, S3F7
+/// - [S3F2], [S3F4], [S3F5], [S3F7]
 /// - S16F3, S16F11, S16F15
+/// 
+/// [S3F2]: crate::messages::s3::MaterialStatusData
+/// [S3F4]: crate::messages::s3::TimeToCompletionData
+/// [S3F5]: crate::messages::s3::MaterialFoundSend
+/// [S3F7]: crate::messages::s3::MaterialLostSend
 #[derive(Clone, Debug)]
 #[repr(u8)]
 pub enum MaterialFormat {
@@ -2847,7 +3052,7 @@ impl TryFrom<Item> for MaterialFormat {
 /// #### Used By
 /// 
 /// - [S2F27]
-/// - S3F2, S3F4, S3F7, S3F9, S3F12, S3F13
+/// - [S3F2], [S3F4], [S3F7], [S3F9], [S3F12], [S3F13]
 /// - S4F1, S4F3, S4F5, S4F7, S4F9, S4F11, S4F13, S4F15, S4F17
 /// - S7F7, S7F8, S7F10, S7F11, S7F13, S7F35, S7F36
 /// - S12F1, S12F3, S12F4, S12F5, S12F7, S12F9, S12F11, S12F13, S12F14, S12F15
@@ -2856,6 +3061,12 @@ impl TryFrom<Item> for MaterialFormat {
 /// - S18F10, S18F11, S18F16
 /// 
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
+/// [S3F2]:  crate::messages::s3::MaterialStatusData
+/// [S3F4]:  crate::messages::s3::TimeToCompletionData
+/// [S3F7]:  crate::messages::s3::MaterialLostSend
+/// [S3F9]:  crate::messages::s3::MaterialIDEquateSend
+/// [S3F12]: crate::messages::s3::MaterialIDRequestAcknowledge
+/// [S3F13]: crate::messages::s3::MaterialIDSend
 pub struct MaterialID(Vec<Char>);
 singleformat_vec!{MaterialID, Ascii, 0..=80, Char}
 
@@ -2873,7 +3084,9 @@ singleformat_vec!{MaterialID, Ascii, 0..=80, Char}
 /// 
 /// #### Used By
 /// 
-/// - S3F14
+/// - [S3F14]
+/// 
+/// [S3F14]: crate::messages::s3::MaterialIDAcknowledge
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum MaterialIDAcknowledgeCode {
@@ -2897,7 +3110,9 @@ singleformat_enum!{MaterialIDAcknowledgeCode, Bin}
 /// 
 /// #### Used By
 /// 
-/// - S3F12
+/// - [S3F12]
+/// 
+/// [S3F12]: crate::messages::s3::MaterialIDRequestAcknowledge
 #[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum MaterialIDRequestAcknowledgeCode {
@@ -2963,7 +3178,7 @@ multiformat_ascii!{ObjectID, U1, U2, U4, U8}
 /// 
 /// #### Format
 /// 
-/// The string is formed out of a sequence of formatted substrings, each
+/// ASCII string, formed out of a sequence of formatted substrings, each
 /// specifying an object's type, and name. The substring format has the
 /// following four parts:
 /// 
@@ -2976,8 +3191,6 @@ multiformat_ascii!{ObjectID, U1, U2, U4, U8}
 /// not necessary to uniquely identify an object. The final Greater-Than Symbol
 /// is optional.
 /// 
-/// TODO: Implement format restrictions.
-/// 
 /// ----------------------------------------------------------------------------
 /// 
 /// #### Used By
@@ -2989,14 +3202,92 @@ multiformat_ascii!{ObjectID, U1, U2, U4, U8}
 /// - S15F7, S15F23, S15F43, S15F47
 /// 
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
-pub struct ObjectSpecifier(pub Vec<Char>);
-singleformat_vec!{ObjectSpecifier, Ascii}
+#[derive(Clone, Debug)]
+pub struct ObjectSpecifier(pub Vec<(Option<Vec<Char>>, Vec<Char>)>);
+impl From<ObjectSpecifier> for Item {
+  fn from(object_specifier: ObjectSpecifier) -> Self {
+    let mut output: Vec<Char> = vec![];
+    for object_id in object_specifier.0 {
+      if let Some(object_type) = object_id.0 {
+        output.extend(object_type);
+        output.push(Char::Colon);
+      }
+      output.extend(object_id.1);
+      output.push(Char::GreaterThanSign);
+    }
+    Item::Ascii(output)
+  }
+}
+impl TryFrom<Item> for ObjectSpecifier {
+  type Error = Error;
+
+  fn try_from(item: Item) -> Result<Self, Self::Error> {
+    match item {
+      Item::Ascii(vec) => {
+        let mut output: Vec<(Option<Vec<Char>>, Vec<Char>)> = vec![];
+        if vec.len() > 0 {
+          let mut temp_a: Vec<Char> = vec![];
+          let mut temp_b: Vec<Char> = vec![];
+          let mut colon_seen: bool = false;
+          for char in vec {
+            if char == Char::Colon {
+              if temp_a.len() == 0 || colon_seen {
+                return Err(WrongFormat)
+              } else {
+                colon_seen = true;
+              }
+            } else if char == Char::GreaterThanSign {
+              if colon_seen {
+                if temp_b.len() == 0 {
+                  return Err(WrongFormat)
+                } else {
+                  output.push((Some(temp_a), temp_b));
+                  colon_seen = false;
+                  temp_a = vec![];
+                  temp_b = vec![];
+                }
+              } else {
+                if temp_a.len() == 0 {
+                  return Err(WrongFormat)
+                } else {
+                  output.push((None, temp_a));
+                  colon_seen = false;
+                  temp_a = vec![];
+                }
+              }
+            } else {
+              if colon_seen {
+                temp_b.push(char);
+              } else {
+                temp_a.push(char);
+              }
+            }
+          }
+          if temp_a.len() > 0 {
+            if colon_seen {
+              if temp_b.len() == 0 {
+                return Err(WrongFormat)
+              } else {
+                output.push((Some(temp_a), temp_b))
+              }
+            } else {
+              output.push((None, temp_a));
+            }
+          }
+        }
+        Ok(ObjectSpecifier(output))
+      },
+      _ => Err(WrongFormat)
+    }
+  }
+}
 
 /// ## OBJTYPE
 /// 
-/// An identifier for a class of objects.
+/// **Object Type**
 /// 
-/// All objects of the same type must have the same set of attributes.
+/// An identifier for a class of objects; all objects of the same type must have
+/// the same set of attributes.
 /// 
 /// ----------------------------------------------------------------------------
 /// 
@@ -3006,6 +3297,7 @@ singleformat_vec!{ObjectSpecifier, Ascii}
 /// - S14F1, S14F3, S14F6, S14F7, S14F8, S14F9, S14F25, S14F26, S14F27
 /// 
 /// [S1F19]: crate::messages::s1::GetAttribute
+#[derive(Clone, Debug)]
 pub enum ObjectType {
   Ascii(Vec<Char>),
   U1(u8),
@@ -3053,6 +3345,28 @@ pub enum OnLineAcknowledge {
 }
 singleformat_enum!{OnLineAcknowledge, Bin}
 
+/// ## OUTPTN
+/// 
+/// **Output Port Number**
+/// 
+/// Specialized version of [PTN] indicating the output port.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [PTN].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [PTN]:   PortNumber
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
+pub type OutputPortNumber = PortNumber;
+
 /// ## PARAMNAME
 /// 
 /// **Parameter Name**
@@ -3069,7 +3383,10 @@ singleformat_enum!{OnLineAcknowledge, Bin}
 /// 
 /// #### Used By
 /// 
-/// - S3F23, S3F25
+/// - [S3F23], [S3F25]
+/// 
+/// [S3F23]: crate::messages::s3::PortGroupActionRequest
+/// [S3F25]: crate::messages::s3::PortActionRequest
 pub struct ParameterName(pub Vec<Char>);
 singleformat_vec!{ParameterName, Ascii}
 
@@ -3090,9 +3407,11 @@ singleformat_vec!{ParameterName, Ascii}
 /// 
 /// #### Used By
 /// 
-/// - S3F23, S3F25
+/// - [S3F23], [S3F25]
 /// 
 /// [PARAMNAME]: ParameterName
+/// [S3F23]:     crate::messages::s3::PortGroupActionRequest
+/// [S3F25]:     crate::messages::s3::PortActionRequest
 #[derive(Clone, Debug)]
 pub enum ParameterValue {
   List(Vec<Item>),
@@ -3111,6 +3430,26 @@ pub enum ParameterValue {
   F8(Vec<f64>),
 }
 multiformat_vec!{ParameterValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
+
+/// ## PODID
+/// 
+/// **Pod Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+/// [S3F35]:   crate::messages::s3::ReticleTransferJobRequest
+pub type PodID = ObjectSpecifier;
 
 /// ## PPID
 /// 
@@ -3140,6 +3479,29 @@ multiformat_vec!{ParameterValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2,
 pub struct ProcessProgramID(Vec<Char>);
 singleformat_vec!{ProcessProgramID, Ascii, 0..=120, Char}
 
+/// ## PORTACTION
+/// 
+/// **Port Action**
+/// 
+/// The action to be performed on a port.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// ASCII string.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F25]
+/// 
+/// [S3F25]: crate::messages::s3::PortActionRequest
+#[derive(Clone, Debug)]
+pub struct PortAction(pub Vec<Char>);
+singleformat_vec!{PortAction, Ascii}
+
 /// ## PGRPACTION
 /// 
 /// **Port Group Action**
@@ -3156,7 +3518,10 @@ singleformat_vec!{ProcessProgramID, Ascii, 0..=120, Char}
 /// 
 /// #### Used By
 /// 
-/// - S3F23
+/// - [S3F23]
+/// 
+/// [S3F23]: crate::messages::s3::PortGroupActionRequest
+#[derive(Clone, Debug)]
 pub struct PortGroupAction(pub Vec<Char>);
 singleformat_vec!{PortGroupAction, Ascii}
 
@@ -3176,7 +3541,11 @@ singleformat_vec!{PortGroupAction, Ascii}
 /// 
 /// #### Used By
 /// 
-/// - S3F21, S3F23
+/// - [S3F21], [S3F23]
+/// 
+/// [S3F21]: crate::messages::s3::PortGroupDefinition
+/// [S3F23]: crate::messages::s3::PortGroupActionRequest
+#[derive(Clone, Debug)]
 pub struct PortGroupName(pub Vec<Char>);
 singleformat_vec!{PortGroupName, Ascii}
 
@@ -3194,14 +3563,23 @@ singleformat_vec!{PortGroupName, Ascii}
 /// 
 /// #### Used By
 /// 
-/// - S3F11, S3F12, S3F13, S3F17, S3F21, S3F25, S3F27, S3F28
+/// - [S3F11], [S3F12], [S3F13], [S3F17], [S3F21], [S3F25], [S3F27], [S3F28]
 /// - S4F1, S4F3, S4F5, S4F7, S4F9, S4F11, S4F13, S4F15, S4F17
+/// 
+/// [S3F11]: crate::messages::s3::MaterialIDRequest
+/// [S3F12]: crate::messages::s3::MaterialIDRequestAcknowledge
+/// [S3F13]: crate::messages::s3::MaterialIDSend
+/// [S3F17]: crate::messages::s3::CarrierActionRequest
+/// [S3F21]: crate::messages::s3::PortGroupDefinition
+/// [S3F25]: crate::messages::s3::PortActionRequest
+/// [S3F27]: crate::messages::s3::ChangeAccess
+/// [S3F28]: crate::messages::s3::ChangeAccessAcknowledge
 #[derive(Clone, Copy, Debug)]
-pub enum MaterialPortNumber {
+pub enum PortNumber {
   Bin(u8),
   U1(u8),
 }
-multiformat!{MaterialPortNumber, Bin, U1}
+multiformat!{PortNumber, Bin, U1}
 
 /// ## QUA
 /// 
@@ -3217,7 +3595,12 @@ multiformat!{MaterialPortNumber, Bin, U1}
 /// 
 /// #### Used By
 /// 
-/// - S3F2, S3F4, S3F5, S3F7
+/// - [S3F2], [S3F4], [S3F5], [S3F7]
+/// 
+/// [S3F2]: crate::messages::s3::MaterialStatusData
+/// [S3F4]: crate::messages::s3::TimeToCompletionData
+/// [S3F5]: crate::messages::s3::MaterialFoundSend
+/// [S3F7]: crate::messages::s3::MaterialLostSend
 #[derive(Clone, Copy, Debug)]
 pub struct Quantity(pub u8);
 singleformat!{Quantity, U1}
@@ -3264,6 +3647,26 @@ pub enum RemoteCommand {
 }
 multiformat_ascii!{RemoteCommand, I1, U1}
 
+/// ## RCPID
+/// 
+/// **Recipe Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S15F21, S15F23, S15F28, S15F29, S15F30, S15F33, S15F35, S15F37, S15F41,
+///   S15F44, S15F43
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+pub type RecipeID = ObjectSpecifier;
+
 /// ## REPGSZ
 /// 
 /// Reporting group size.
@@ -3290,6 +3693,81 @@ pub enum ReportingGroupSize {
 }
 multiformat_ascii!{ReportingGroupSize, I1, I2, I4, I8, U1, U2, U4, U8}
 
+/// ## RETICLEID
+/// 
+/// **Reticle Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+/// [S3F35]:   crate::messages::s3::ReticleTransferJobRequest
+pub type ReticleID = ObjectSpecifier;
+
+/// ## RETPLACEINSTR
+/// 
+/// **Reticle Place Instruction**
+/// 
+/// Indicates which pod slots will have reticles placed.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single-byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum ReticlePlaceInstruction {
+  Place = 0,
+  PassBy = 1,
+  CurrentlyOccupied = 2,
+}
+singleformat_enum!{ReticlePlaceInstruction, U1}
+
+/// ## RETREMOVEINSTR
+/// 
+/// **Reticle Remove Instruction**
+/// 
+/// Indicates which pod slots will have reticles removed.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single-byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - [S3F35]
+/// 
+/// [S3F35]: crate::messages::s3::ReticleTransferJobRequest
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum ReticleRemoveInstruction {
+  Remove = 0,
+  PassBy = 1,
+}
+singleformat_enum!{ReticleRemoveInstruction, U1}
+
 /// ## RIC
 /// 
 /// Reset code, 1 byte.
@@ -3310,6 +3788,36 @@ pub enum ResetCode {
   PowerUpReset = 1,
 }
 singleformat_enum!{ResetCode, U1}
+
+/// ## RPMACK
+/// 
+/// **Reticle Pod Management Service Acknowledge Code**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Single-byte enumerated value.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S3F36
+/// 
+/// [S3F36]: crate::messages::s3::ReticleTransferJobAcknowledge
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum ReticlePodManagementAcknowledgeCode {
+  Ok = 0,
+  ServiceDoesNotExist = 1,
+  CannotPerformNow = 2,
+  ParameterDoesNotExist = 3,
+  ToBeCompleted = 4,
+  ServiceFailed = 5,
+  ObjectDoesNotExist = 6,
+}
+singleformat_enum!{ReticlePodManagementAcknowledgeCode, U1}
 
 /// ## RPTID
 /// 
@@ -3608,6 +4116,26 @@ multiformat!{StatusVariableID, I1, I2, I4, I8, U1, U2, U4, U8}
 pub struct StatusVariableName(pub Vec<Char>);
 singleformat_vec!{StatusVariableName, Ascii}
 
+/// ## TARGETID
+/// 
+/// **Target Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S18F1, S18F2, S18F3, S18F4, S18F5, S18F6, S18F7, S18F8, S18F9, S18F10,
+///   S18F11, S18F12, S18F13, S18F14, S18F15, S18F16
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+pub type TargetID = ObjectSpecifier;
+
 /// ## TBLELT
 /// 
 /// Table element.
@@ -3637,6 +4165,46 @@ pub enum TableElement {
   F8(Vec<f64>),
 }
 multiformat_vec!{TableElement, List, Bin, Bool, Ascii, Jis8, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
+
+/// ## TBLID
+/// 
+/// **Table Identifier**
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJSPEC].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S13F13, S13F15, S13F16
+/// 
+/// [OBJSPEC]: ObjectSpecifier
+pub type TableID = ObjectSpecifier;
+
+/// ## TBLTYP
+/// 
+/// **Table Type**
+/// 
+/// A reserved text string to denot the format and application of a table.
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Format
+/// 
+/// Identical to [OBJTYPE].
+/// 
+/// ----------------------------------------------------------------------------
+/// 
+/// #### Used By
+/// 
+/// - S13F13, S13F15, S13F16
+/// 
+/// [OBJTYPE]: ObjectType
+pub type TableType = ObjectType;
 
 /// ## TIAACK
 /// 
@@ -3846,7 +4414,9 @@ singleformat_enum!{TransferStatusOutputPort, Bin}
 /// 
 /// #### Used By
 /// 
-/// - S3F4
+/// - [S3F4]
+/// 
+/// [S3F4]: crate::messages::s3::TimeToCompletionData
 #[derive(Clone, Copy, Debug)]
 pub enum TimeToCompletion{
   I1(i8),

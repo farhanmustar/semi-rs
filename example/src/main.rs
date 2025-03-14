@@ -1,4 +1,4 @@
-// Copyright © 2024 Nathaniel Hardesty
+// Copyright © 2024-2025 Nathaniel Hardesty
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the “Software”), to
@@ -48,7 +48,9 @@ fn test_data() {
   // Derive a specific SECS-II item with length restrictions from a string and print it.
   let a: semi_e5::items::ErrorText = semi_e5::items::ErrorText::new(vec![CapitalA]).unwrap();
   println!("{:?}", a);
-  println!("{:?}", a.read()[0])
+  println!("{:?}", a.read()[0]);
+  // OBJSPEC Conversion Testing
+  println!("{:?}", Item::from(ObjectSpecifier::try_from(Item::Ascii(b"Type_A:Object_1>Type_B:Object_2".as_ascii().unwrap().to_vec())).unwrap()));
 }
 
 /// ## TEST: EQUIPMENT
