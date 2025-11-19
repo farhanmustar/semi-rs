@@ -588,7 +588,7 @@ message_headeronly!{RequestOnLine, true, 1, 17}
 /// 
 /// [ONLACK]: OnLineAcknowledge
 pub struct OnLineAck(pub OnLineAcknowledge);
-message_data!{OnLineAck, false, 1, 16}
+message_data!{OnLineAck, false, 1, 18}
 
 /// ## S1F19
 /// 
