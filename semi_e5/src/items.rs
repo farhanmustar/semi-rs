@@ -104,6 +104,13 @@ pub fn str_to_chars(s: &str) -> Result<Vec<Char>, Error> {
         .collect()
 }
 
+/// Convert a string to a vector of Chars, replacing invalid ASCII with '?'
+pub fn safe_str_to_chars(s: &str) -> Vec<Char> {
+    s.chars()
+        .map(|c| Char::try_from(c).unwrap_or(Char(b'?')))
+        .collect()
+}
+
 /// ## OPTIONAL ITEM
 /// 
 /// Represents an [Item] which may alternatively take the form of a [List] with
