@@ -18,9 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#![feature(ascii_char)]
-#![feature(ascii_char_variants)]
-
 use std::{io::Error, sync::Arc, thread::{self, JoinHandle}, time::Duration};
 use semi_e5::{Item, Message, items::*, messages::*};
 use semi_e37::generic::{ConnectionMode, Client, MessageID, ParameterSettings};
@@ -28,6 +25,7 @@ use semi_e37::generic::{ConnectionMode, Client, MessageID, ParameterSettings};
 fn main() {
   test_data();
   let equipment = thread::spawn(|| {test_equipment();});
+  thread::sleep(Duration::from_secs(2));  // give time for equipment to open port first.
   let host = thread::spawn(|| {test_host();});
   let _ = equipment.join();
   let _ = host.join();
@@ -35,7 +33,7 @@ fn main() {
 
 fn test_data() {
   println!("{:?}", Item::try_from(vec![1, 1, 177, 4, 0, 0, 7, 237]));
-  let a: semi_e5::items::ErrorText = semi_e5::items::ErrorText::new(vec![CapitalA]).unwrap();
+  let a: semi_e5::items::ErrorText = semi_e5::items::ErrorText::new(str_to_chars("A").unwrap()).unwrap();
   println!("{:?}", a);
   println!("{:?}", a.read()[0])
 }
@@ -64,8 +62,8 @@ fn test_equipment() {
               match s1::AreYouThere::try_from(request) {
                 Ok(_) => {
                   s1::OnLineDataEquipment((
-                    ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
-                    SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
+                    ModelName::new(str_to_chars("SEMI-RS").unwrap()).unwrap(),
+                    SoftwareRevision::new(str_to_chars("010").unwrap()).unwrap(),
                   )).into()
                 },
                 Err(_) => s1::Abort.into(),
@@ -100,8 +98,8 @@ fn test_equipment() {
                 Ok(_s1f13) => {
                   s1::EquipmentCRA((
                     CommAck::Accepted, (
-                      ModelName::new(b"SEMI-RS".as_ascii().unwrap().to_vec()).unwrap(),
-                      SoftwareRevision::new(b"010".as_ascii().unwrap().to_vec()).unwrap(),
+                      ModelName::new(str_to_chars("SEMI-RS").unwrap()).unwrap(),
+                      SoftwareRevision::new(str_to_chars("010").unwrap()).unwrap(),
                     )
                   )).into()
                 },
