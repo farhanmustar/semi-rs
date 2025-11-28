@@ -196,6 +196,277 @@ impl<A: Into<Item>> From<VecList<A>> for Item {
   }
 }
 
+/// ## VECLIST TUPLE CONVERSIONS - 2-TUPLE -> VECLIST<ITEM>
+impl<T1, T2> From<VecList<(T1, T2)>> for VecList<Item>
+where
+  T1: Into<Item>,
+  T2: Into<Item>,
+{
+  fn from(vec_list: VecList<(T1, T2)>) -> Self {
+    VecList(
+      vec_list.0
+        .into_iter()
+        .map(|(item1, item2)| Item::List(vec![item1.into(), item2.into()]))
+        .collect()
+    )
+  }
+}
+
+/// ## VECLIST<ITEM> -> VECLIST TUPLE CONVERSIONS - 2-TUPLE
+impl<T1, T2> TryFrom<VecList<Item>> for VecList<(T1, T2)>
+where
+  T1: TryFrom<Item, Error = Error>,
+  T2: TryFrom<Item, Error = Error>,
+{
+  type Error = Error;
+
+  fn try_from(vec_list: VecList<Item>) -> Result<Self, Self::Error> {
+    let mut result = Vec::new();
+    for item in vec_list.0 {
+      match item {
+        Item::List(list) => {
+          if list.len() == 2 {
+            let item1: T1 = list[0].clone().try_into()?;
+            let item2: T2 = list[1].clone().try_into()?;
+            result.push((item1, item2));
+          } else {
+            return Err(Error::WrongFormat);
+          }
+        },
+        _ => return Err(Error::WrongFormat),
+      }
+    }
+    Ok(Self(result))
+  }
+}
+
+/// ## VECLIST TUPLE CONVERSIONS - 3-TUPLE -> VECLIST<ITEM>
+impl<T1, T2, T3> From<VecList<(T1, T2, T3)>> for VecList<Item>
+where
+  T1: Into<Item>,
+  T2: Into<Item>,
+  T3: Into<Item>,
+{
+  fn from(vec_list: VecList<(T1, T2, T3)>) -> Self {
+    VecList(
+      vec_list.0
+        .into_iter()
+        .map(|(item1, item2, item3)| {
+          Item::List(vec![item1.into(), item2.into(), item3.into()])
+        })
+        .collect()
+    )
+  }
+}
+
+/// ## VECLIST<ITEM> -> VECLIST TUPLE CONVERSIONS - 3-TUPLE
+impl<T1, T2, T3> TryFrom<VecList<Item>> for VecList<(T1, T2, T3)>
+where
+  T1: TryFrom<Item, Error = Error>,
+  T2: TryFrom<Item, Error = Error>,
+  T3: TryFrom<Item, Error = Error>,
+{
+  type Error = Error;
+
+  fn try_from(vec_list: VecList<Item>) -> Result<Self, Self::Error> {
+    let mut result = Vec::new();
+    for item in vec_list.0 {
+      match item {
+        Item::List(list) => {
+          if list.len() == 3 {
+            let item1: T1 = list[0].clone().try_into()?;
+            let item2: T2 = list[1].clone().try_into()?;
+            let item3: T3 = list[2].clone().try_into()?;
+            result.push((item1, item2, item3));
+          } else {
+            return Err(Error::WrongFormat);
+          }
+        },
+        _ => return Err(Error::WrongFormat),
+      }
+    }
+    Ok(Self(result))
+  }
+}
+
+/// ## VECLIST TUPLE CONVERSIONS - 4-TUPLE -> VECLIST<ITEM>
+impl<T1, T2, T3, T4> From<VecList<(T1, T2, T3, T4)>> for VecList<Item>
+where
+  T1: Into<Item>,
+  T2: Into<Item>,
+  T3: Into<Item>,
+  T4: Into<Item>,
+{
+  fn from(vec_list: VecList<(T1, T2, T3, T4)>) -> Self {
+    VecList(
+      vec_list.0
+        .into_iter()
+        .map(|(item1, item2, item3, item4)| {
+          Item::List(vec![item1.into(), item2.into(), item3.into(), item4.into()])
+        })
+        .collect()
+    )
+  }
+}
+
+/// ## VECLIST<ITEM> -> VECLIST TUPLE CONVERSIONS - 4-TUPLE
+impl<T1, T2, T3, T4> TryFrom<VecList<Item>> for VecList<(T1, T2, T3, T4)>
+where
+  T1: TryFrom<Item, Error = Error>,
+  T2: TryFrom<Item, Error = Error>,
+  T3: TryFrom<Item, Error = Error>,
+  T4: TryFrom<Item, Error = Error>,
+{
+  type Error = Error;
+
+  fn try_from(vec_list: VecList<Item>) -> Result<Self, Self::Error> {
+    let mut result = Vec::new();
+    for item in vec_list.0 {
+      match item {
+        Item::List(list) => {
+          if list.len() == 4 {
+            let item1: T1 = list[0].clone().try_into()?;
+            let item2: T2 = list[1].clone().try_into()?;
+            let item3: T3 = list[2].clone().try_into()?;
+            let item4: T4 = list[3].clone().try_into()?;
+            result.push((item1, item2, item3, item4));
+          } else {
+            return Err(Error::WrongFormat);
+          }
+        },
+        _ => return Err(Error::WrongFormat),
+      }
+    }
+    Ok(Self(result))
+  }
+}
+
+/// ## VECLIST TUPLE CONVERSIONS - 5-TUPLE -> VECLIST<ITEM>
+impl<T1, T2, T3, T4, T5> From<VecList<(T1, T2, T3, T4, T5)>> for VecList<Item>
+where
+  T1: Into<Item>,
+  T2: Into<Item>,
+  T3: Into<Item>,
+  T4: Into<Item>,
+  T5: Into<Item>,
+{
+  fn from(vec_list: VecList<(T1, T2, T3, T4, T5)>) -> Self {
+    VecList(
+      vec_list.0
+        .into_iter()
+        .map(|(item1, item2, item3, item4, item5)| {
+          Item::List(vec![
+            item1.into(),
+            item2.into(),
+            item3.into(),
+            item4.into(),
+            item5.into(),
+          ])
+        })
+        .collect()
+    )
+  }
+}
+
+/// ## VECLIST<ITEM> -> VECLIST TUPLE CONVERSIONS - 5-TUPLE
+impl<T1, T2, T3, T4, T5> TryFrom<VecList<Item>> for VecList<(T1, T2, T3, T4, T5)>
+where
+  T1: TryFrom<Item, Error = Error>,
+  T2: TryFrom<Item, Error = Error>,
+  T3: TryFrom<Item, Error = Error>,
+  T4: TryFrom<Item, Error = Error>,
+  T5: TryFrom<Item, Error = Error>,
+{
+  type Error = Error;
+
+  fn try_from(vec_list: VecList<Item>) -> Result<Self, Self::Error> {
+    let mut result = Vec::new();
+    for item in vec_list.0 {
+      match item {
+        Item::List(list) => {
+          if list.len() == 5 {
+            let item1: T1 = list[0].clone().try_into()?;
+            let item2: T2 = list[1].clone().try_into()?;
+            let item3: T3 = list[2].clone().try_into()?;
+            let item4: T4 = list[3].clone().try_into()?;
+            let item5: T5 = list[4].clone().try_into()?;
+            result.push((item1, item2, item3, item4, item5));
+          } else {
+            return Err(Error::WrongFormat);
+          }
+        },
+        _ => return Err(Error::WrongFormat),
+      }
+    }
+    Ok(Self(result))
+  }
+}
+
+/// ## VECLIST TUPLE CONVERSIONS - 6-TUPLE -> VECLIST<ITEM>
+impl<T1, T2, T3, T4, T5, T6> From<VecList<(T1, T2, T3, T4, T5, T6)>> for VecList<Item>
+where
+  T1: Into<Item>,
+  T2: Into<Item>,
+  T3: Into<Item>,
+  T4: Into<Item>,
+  T5: Into<Item>,
+  T6: Into<Item>,
+{
+  fn from(vec_list: VecList<(T1, T2, T3, T4, T5, T6)>) -> Self {
+    VecList(
+      vec_list.0
+        .into_iter()
+        .map(|(item1, item2, item3, item4, item5, item6)| {
+          Item::List(vec![
+            item1.into(),
+            item2.into(),
+            item3.into(),
+            item4.into(),
+            item5.into(),
+            item6.into(),
+          ])
+        })
+        .collect()
+    )
+  }
+}
+
+/// ## VECLIST<ITEM> -> VECLIST TUPLE CONVERSIONS - 6-TUPLE
+impl<T1, T2, T3, T4, T5, T6> TryFrom<VecList<Item>> for VecList<(T1, T2, T3, T4, T5, T6)>
+where
+  T1: TryFrom<Item, Error = Error>,
+  T2: TryFrom<Item, Error = Error>,
+  T3: TryFrom<Item, Error = Error>,
+  T4: TryFrom<Item, Error = Error>,
+  T5: TryFrom<Item, Error = Error>,
+  T6: TryFrom<Item, Error = Error>,
+{
+  type Error = Error;
+
+  fn try_from(vec_list: VecList<Item>) -> Result<Self, Self::Error> {
+    let mut result = Vec::new();
+    for item in vec_list.0 {
+      match item {
+        Item::List(list) => {
+          if list.len() == 6 {
+            let item1: T1 = list[0].clone().try_into()?;
+            let item2: T2 = list[1].clone().try_into()?;
+            let item3: T3 = list[2].clone().try_into()?;
+            let item4: T4 = list[3].clone().try_into()?;
+            let item5: T5 = list[4].clone().try_into()?;
+            let item6: T6 = list[5].clone().try_into()?;
+            result.push((item1, item2, item3, item4, item5, item6));
+          } else {
+            return Err(Error::WrongFormat);
+          }
+        },
+        _ => return Err(Error::WrongFormat),
+      }
+    }
+    Ok(Self(result))
+  }
+}
+
 // EMPTY LIST IS IMPLEMENTED BY THE USE OF THE UNIT TYPE ()
 
 /// ## ITEM -> EMPTY LIST
