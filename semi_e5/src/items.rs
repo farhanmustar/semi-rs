@@ -1051,7 +1051,7 @@ singleformat_enum!{AlarmEnableDisable, Bin}
 /// #### Used By
 /// 
 /// - S5F1, S5F3, S5F5, S5F6, S5F8
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum AlarmID {
   I1(i8),
   I2(i16),
@@ -1127,6 +1127,7 @@ multiformat_vec!{AttributeValue, List, Bin, Bool, Ascii, I1, I2, I4, I8, U1, U2,
 /// - S18F1, S18F3
 /// 
 /// [S1F19]: crate::messages::s1::GetAttribute
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum AttributeID {
   Ascii(Vec<Char>),
   U1(u8),
@@ -1331,7 +1332,7 @@ singleformat_vec!{CarrierAction, Ascii}
 /// #### Used By
 /// 
 /// - S3F17, S16F11, S16F15
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct CarrierID(pub Vec<Char>);
 singleformat_vec!{CarrierID, Ascii}
 
@@ -1362,7 +1363,7 @@ singleformat_vec!{CarrierSpecifier, Ascii}
 /// #### Used By
 /// 
 /// - S3F17
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct CarrierAttributeID(pub Vec<Char>);
 singleformat_vec!{CarrierAttributeID, Ascii}
 
@@ -1428,6 +1429,7 @@ singleformat!{CollectionEventEnableDisable, Bool}
 /// [S1F24]: crate::messages::s1::CollectionEventNamelist
 /// [S2F35]: crate::messages::s2::LinkEventReport
 /// [S2F37]: crate::messages::s2::EnableDisableEventReport
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum CollectionEventID {
   Ascii(Vec<Char>),
   I1(i8),
@@ -1932,7 +1934,7 @@ singleformat_enum!{DataAcknowledge, Bin}
 /// [S2F39]: crate::messages::s2::MultiBlockInquire
 /// [S2F45]: crate::messages::s2::DefineVariableLimitAttributes
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum DataID {
   Ascii(Vec<Char>),
   I1(i8),
@@ -2125,7 +2127,7 @@ multiformat_vec!{EquipmentConstantDefaultValue, Bin, Bool, Ascii, Jis8, I1, I2, 
 /// [S2F15]: crate::messages::s2::NewEquipmentConstantSend
 /// [S2F29]: crate::messages::s2::EquipmentConstantNamelistRequest
 /// [S2F30]: crate::messages::s2::EquipmentConstantNamelist
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum EquipmentConstantID {
   Ascii(Vec<Char>),
   I1(i8),
@@ -2464,6 +2466,7 @@ singleformat_vec!{ErrorText, Ascii, 0..=120, Char}
 /// 
 /// [S2F43]: crate::messages::s2::ResetSpoolingStreamsAndFunctions
 /// [S2F44]: crate::messages::s2::ResetSpoolingAcknowledge
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct FunctionID(pub u8);
 singleformat!{FunctionID, U1}
 
@@ -2603,6 +2606,7 @@ singleformat_enum!{VariableLimitAttributeSetAcknowledgeCode, Bin}
 /// [S2F45]: crate::messages::s2::DefineVariableLimitAttributes
 /// [S2F46]: crate::messages::s2::VariableLimitAttributeAcknowledge
 /// [S2F48]: crate::messages::s2::VariableLimitAttributeSend
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct LimitID(pub u8);
 singleformat!{LimitID, Bin}
 
@@ -2820,6 +2824,7 @@ singleformat_vec!{ModelName, Ascii, 0..=20, Char}
 /// - S18F10, S18F11, S18F16
 /// 
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct MaterialID(Vec<Char>);
 singleformat_vec!{MaterialID, Ascii, 0..=80, Char}
 
@@ -2859,6 +2864,7 @@ multiformat_vec!{NullBinCode, Ascii, U1}
 /// - S14F1, S14F2, S14F3, S14F4
 /// 
 /// [S1F19]: crate::messages::s1::GetAttribute
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ObjectID {
   Ascii(Vec<Char>),
   U1(u8),
@@ -2994,6 +3000,7 @@ singleformat_enum!{OnLineAcknowledge, Bin}
 ///   S7F25, S7F26, S7F27, S7F31, S7F33, S7F34, S7F36, S7F39, S7F43
 /// 
 /// [S2F27]: crate::messages::s2::InitiateProcessingRequest
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct ProcessProgramID(Vec<Char>);
 singleformat_vec!{ProcessProgramID, Ascii, 0..=120, Char}
 
@@ -3100,7 +3107,7 @@ singleformat_enum!{ResetCode, U1}
 /// 
 /// [S2F33]: crate::messages::s2::DefineReport
 /// [S2F35]: crate::messages::s2::LinkEventReport
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ReportID {
   Ascii(Vec<Char>),
   I1(i8),
@@ -3225,7 +3232,7 @@ singleformat_vec!{ServiceProgramData, Bin}
 /// [S2F7]:  crate::messages::s2::ServiceProgramRunSend
 /// [S2F9]:  crate::messages::s2::ServiceProgramResultsRequest
 /// [S2F12]: crate::messages::s2::ServiceProgramDirectoryData
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct ServiceProgramID(pub [Char; 6]);
 impl From<ServiceProgramID> for Item {
   fn from(value: ServiceProgramID) -> Self {
@@ -3303,6 +3310,7 @@ singleformat_enum!{SpoolStreamAcknowledgeCode, Bin}
 /// 
 /// [S2F43]: crate::messages::s2::ResetSpoolingStreamsAndFunctions
 /// [S2F44]: crate::messages::s2::ResetSpoolingAcknowledge
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct StreamID(pub u8);
 singleformat!{StreamID, U1}
 
@@ -3355,7 +3363,7 @@ multiformat_vec!{StatusVariableValue, List, Bin, Bool, Ascii, Jis8, I1, I2, I4, 
 /// [S1F11]: crate::messages::s1::StatusVariableNamelistRequest
 /// [S1F12]: crate::messages::s1::StatusVariableNamelistReply
 /// [S2F23]: crate::messages::s2::TraceInitializeSend
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum StatusVariableID {
   I1(i8),
   I2(i16),
@@ -3556,7 +3564,7 @@ multiformat_ascii!{TotalSamples, I1, I2, I4, I8, U1, U2, U4, U8}
 /// - S17F5, S17F6, S17F7, S17F8, S17F13, S17F14
 /// 
 /// [S2F23]: crate::messages::s2::TraceInitializeSend
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum TraceRequestID {
   Ascii(Vec<Char>),
   I1(i8),
@@ -3687,6 +3695,7 @@ multiformat_vec!{UpperDeadband, Bool, Ascii, I1, I2, I4, I8, U1, U2, U4, U8, F4,
 /// [S2F46]: crate::messages::s2::VariableLimitAttributeAcknowledge
 /// [S2F47]: crate::messages::s2::VariableLimitAttributeRequest
 /// [S2F48]: crate::messages::s2::VariableLimitAttributeSend
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum VariableID {
   Ascii(Vec<Char>),
   I1(i8),
