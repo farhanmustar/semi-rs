@@ -534,6 +534,23 @@ macro_rules! singleformat_vec {
           None
         }
       }
+      /// Creates a new instance from a string.
+      ///
+      /// NOTE: Invalid ASCII characters are replaced with '?'.
+      /// If the string exceeds the maximum length, it will be automatically truncated.
+      /// Returns None only if the string is shorter than the minimum length.
+      pub fn new_from_str(vec: &str) -> Option<Self> {
+        let mut vec = Char::safe_str_to_chars(vec);
+        // Truncate if the string exceeds the maximum length
+        if vec.len() > *$range.end() {
+          vec.truncate(*$range.end());
+        }
+        if $range.contains(&vec.len()) {
+          Some(Self(vec))
+        } else {
+          None
+        }
+      }
       pub fn read(&self) -> &Vec<Char> {
         &self.0
       }
