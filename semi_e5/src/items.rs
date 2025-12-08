@@ -1160,6 +1160,7 @@ singleformat_vec!{AlarmText, Ascii, 0..=120, Char}
 /// - S18F1, S18F3
 /// 
 /// [S1F20]: crate::messages::s1::AttributeData
+#[derive(Clone, Debug)]
 pub enum AttributeValue {
   List(Vec<Item>),
   Bin(Vec<u8>),
@@ -1583,6 +1584,7 @@ singleformat_enum!{CommandEnhancedParameterAcknowledgeCode, U1}
 /// - [S2F49]
 /// 
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
+#[derive(Clone, Debug)]
 pub enum CommandEnhancedParameterValue {
   List(Vec<Item>),
   Bin(Vec<u8>),
@@ -1839,6 +1841,7 @@ singleformat_enum!{CommandParameterAcknowledgeCode, Bin}
 /// [S2F42]: crate::messages::s2::HostCommandAcknowledge
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
 /// [S2F50]: crate::messages::s2::EnhancedRemoteCommandAcknowledge
+#[derive(Clone, Debug)]
 pub enum CommandParameterName {
   Ascii(Vec<Char>),
   I1(Vec<i8>),
@@ -1867,6 +1870,7 @@ multiformat_vec!{CommandParameterName, Ascii, I1, I2, I4, I8, U1, U2, U4, U8}
 /// 
 /// [S2F41]: crate::messages::s2::HostCommandSend
 /// [S2F49]: crate::messages::s2::EnhancedRemoteCommand
+#[derive(Clone, Debug)]
 pub enum CommandParameterValue {
   Bin(Vec<u8>),
   Bool(Vec<bool>),
@@ -2162,6 +2166,7 @@ singleformat_enum!{EquipmentAcknowledgeCode, Bin}
 /// - [S2F30]
 /// 
 /// [S2F30]: crate::messages::s2::EquipmentConstantNamelist
+#[derive(Clone, Debug)]
 pub enum EquipmentConstantDefaultValue {
   Bin(Vec<u8>),
   Bool(Vec<bool>),
@@ -2219,6 +2224,7 @@ multiformat_ascii!{EquipmentConstantID, I1, I2, I4, I8, U1, U2, U4, U8}
 /// - [S2F30]
 /// 
 /// [S2F30]: crate::messages::s2::EquipmentConstantNamelist
+#[derive(Clone, Debug)]
 pub enum EquipmentConstantMaximumValue {
   Bin(Vec<u8>),
   Bool(Vec<bool>),
@@ -2248,6 +2254,7 @@ multiformat_vec!{EquipmentConstantMaximumValue, Bin, Bool, Ascii, Jis8, I1, I2, 
 /// - [S2F30]
 /// 
 /// [S2F30]: crate::messages::s2::EquipmentConstantNamelist
+#[derive(Clone, Debug)]
 pub enum EquipmentConstantMinimumValue {
   Bin(Vec<u8>),
   Bool(Vec<bool>),
@@ -2695,6 +2702,7 @@ singleformat!{LimitID, Bin}
 /// - [S2F48]
 /// 
 /// [S2F48]: crate::messages::s2::VariableLimitAttributeSend
+#[derive(Clone, Debug)]
 pub enum LimitMaximum {
   Bool(Vec<bool>),
   Ascii(Vec<Char>),
@@ -2781,6 +2789,7 @@ singleformat!{LocationCode, Bin}
 /// 
 /// [S2F45]: crate::messages::s2::DefineVariableLimitAttributes
 /// [S2F48]: crate::messages::s2::VariableLimitAttributeSend
+#[derive(Clone, Debug)]
 pub enum LowerDeadband {
   Bool(Vec<bool>),
   Ascii(Vec<Char>),
@@ -2915,6 +2924,7 @@ singleformat_vec!{MaterialID, Ascii, 0..=80, Char}
 /// 
 /// [BCEQU]: BinCodeEquivalents
 /// [BINLT]: BinList
+#[derive(Clone, Debug)]
 pub enum NullBinCode {
   Ascii(Vec<Char>),
   U1(Vec<u8>),
@@ -2998,6 +3008,7 @@ singleformat_vec!{ObjectSpecifier, Ascii}
 /// - S14F1, S14F3, S14F6, S14F7, S14F8, S14F9, S14F25, S14F26, S14F27
 /// 
 /// [S1F19]: crate::messages::s1::GetAttribute
+#[derive(Clone, Debug)]
 pub enum ObjectType {
   Ascii(Vec<Char>),
   U1(u8),
@@ -3472,6 +3483,7 @@ singleformat_vec!{StatusVariableName, Ascii}
 /// #### Used By
 /// 
 /// - S13F13, S13F15, S13F16
+#[derive(Clone, Debug)]
 pub enum TableElement {
   List(Vec<Item>),
   Bin(Vec<u8>),
@@ -3728,6 +3740,7 @@ singleformat_vec!{Units, Ascii}
 /// 
 /// [S2F45]: crate::messages::s2::DefineVariableLimitAttributes
 /// [S2F48]: crate::messages::s2::VariableLimitAttributeSend
+#[derive(Clone, Debug)]
 pub enum UpperDeadband {
   Bool(Vec<bool>),
   Ascii(Vec<Char>),
