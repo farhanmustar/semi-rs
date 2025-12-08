@@ -590,6 +590,47 @@ macro_rules! singleformat_vec {
       }
     }
   };
+  // Special case for Ascii format without range - includes Display trait
+  (
+    $name:ident,
+    Ascii
+  ) => {
+    impl $name {
+      pub fn new(vec: Vec<Char>) -> Option<Self> {
+        Some(Self(vec))
+      }
+      /// Creates a new instance from a string.
+      ///
+      /// NOTE: Invalid ASCII characters are replaced with '?'.
+      pub fn new_from_str(vec: &str) -> Option<Self> {
+        let vec = Char::safe_str_to_chars(vec);
+        Some(Self(vec))
+      }
+      pub fn read(&self) -> &Vec<Char> {
+        &self.0
+      }
+    }
+    impl From<$name> for Item {
+      fn from(value: $name) -> Item {
+        Item::Ascii(value.0)
+      }
+    }
+    impl TryFrom<Item> for $name {
+      type Error = Error;
+
+      fn try_from(value: Item) -> Result<Self, Self::Error> {
+        match value {
+          Item::Ascii(vec) => Ok(Self(vec)),
+          _ => Err(WrongFormat),
+        }
+      }
+    }
+    impl std::fmt::Display for $name {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", Char::chars_to_str(&self.0))
+      }
+    }
+  };
   // General case (with optional range and type)
   (
     $name:ident,
