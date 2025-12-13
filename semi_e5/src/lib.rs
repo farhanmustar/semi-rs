@@ -139,6 +139,18 @@ pub struct Message {
   /// - [Some] - Indicates a message with contents after the header.
   pub text: Option<Item>,
 }
+impl std::fmt::Display for Message {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "S{}F{}", self.stream, self.function)?;
+    if self.w {
+      write!(f, ",reply")?;
+    }
+    if let Some(ref text) = self.text {
+      write!(f, "{}", text)?;
+    }
+    Ok(())
+  }
+}
 
 /// ## DATA CONVERSION ERROR
 /// 
@@ -466,6 +478,126 @@ impl Item {
   /// [8-byte Floating Point Number]: Item::F8
   pub fn f8(value: f64) -> Self {
     Self::F8(vec![value])
+  }
+}
+impl std::fmt::Display for Item {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt_item(item: &Item, f: &mut std::fmt::Formatter<'_>, indent: usize) -> std::fmt::Result {
+      let indent_str = "  ".repeat(indent);
+      match item {
+        Item::List(items) => {
+          writeln!(f, "<L [{}]", items.len())?;
+          for item in items {
+            write!(f, "{}", indent_str)?;
+            fmt_item(item, f, indent + 1)?;
+            writeln!(f)?;
+          }
+          let closing_indent = "  ".repeat(indent.saturating_sub(1));
+          write!(f, "{}>", closing_indent)
+        },
+        Item::Ascii(chars) => {
+          let s: String = chars.iter().map(|c| {
+            let byte: u8 = (*c).into();
+            byte as char
+          }).collect();
+          write!(f, "<A \"{}\">", s)
+        },
+        Item::Jis8(s) => {
+          write!(f, "<J \"{}\">", s)
+        },
+        Item::Local(header, data) => {
+          write!(f, "<LOCAL {:?} {:?}>", header, data)
+        },
+        Item::Bin(vec) => {
+          write!(f, "<B")?;
+          for b in vec {
+            write!(f, " 0x{:02X}", b)?;
+          }
+          write!(f, " >")
+        },
+        Item::Bool(vec) => {
+          write!(f, "<BOOL")?;
+          for b in vec {
+            write!(f, " {}", if *b { "T" } else { "F" })?;
+          }
+          write!(f, " >")
+        },
+        Item::I1(vec) => {
+          write!(f, "<I1")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::I2(vec) => {
+          write!(f, "<I2")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::I4(vec) => {
+          write!(f, "<I4")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::I8(vec) => {
+          write!(f, "<I8")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::U1(vec) => {
+          write!(f, "<U1")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::U2(vec) => {
+          write!(f, "<U2")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::U4(vec) => {
+          write!(f, "<U4")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::U8(vec) => {
+          write!(f, "<U8")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::F4(vec) => {
+          write!(f, "<F4")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+        Item::F8(vec) => {
+          write!(f, "<F8")?;
+          for v in vec {
+            write!(f, " {}", v)?;
+          }
+          write!(f, " >")
+        },
+      }
+    }
+
+    writeln!(f)?;
+    fmt_item(self, f, 1)?;
+    writeln!(f)
   }
 }
 impl From<Item> for Vec<u8> {
