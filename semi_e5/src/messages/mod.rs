@@ -299,29 +299,7 @@ pub mod s8 {}
 /// [Message]: crate::Message
 pub mod s9 {}
 
-/// # STREAM 10: TERMINAL SERVICES
-/// **Based on SEMI E5§10.14**
-/// 
-/// ---------------------------------------------------------------------------
-/// 
-/// [Message]s which deal with passing textual messages between operator
-/// terminals attached to processing or testing equipment and the host.
-/// 
-/// The equipment makes no attempt to interpret the text of the message, but
-/// merely passes it from terminal keyboard to the host or from the host to
-/// the display of the terminal.
-/// 
-/// Management of human response times to information displayed on terminals
-/// is the responsibility of the host.
-/// 
-/// ---------------------------------------------------------------------------
-/// 
-/// ## TO BE DONE
-/// 
-/// - Fill out stream contents
-/// 
-/// [Message]: crate::Message
-pub mod s10 {}
+pub mod s10;
 
 /// # STREAM 11: DELETED
 /// **Based on SEMI E5§10.15**

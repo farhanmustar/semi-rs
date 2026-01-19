@@ -1083,8 +1083,34 @@ singleformat_enum!{AcknowledgeCode6, Bin}
 // TODO: ACKC7A
 // How to deal with 6-63 being reserved but the rest being open for user values?
 
-// TODO: ACKC10
-// How to deal with 3-63 being reserved but the rest being open for user values?
+/// ## ACKC10
+///
+/// **Acknowledge Code for Stream 10**
+///
+/// Terminal display acknowledge code, 1 byte.
+///
+/// -------------------------------------------------------------------------
+///
+/// #### Values
+///
+/// - 0 = Accepted
+/// - 1 = Will not be displayed
+/// - 2 = Terminal not available
+/// - 3-63 = Reserved
+///
+/// -------------------------------------------------------------------------
+///
+/// #### Used By
+///
+/// - S10F2, S10F4, S10F6, S10F10
+#[derive(Clone, Copy, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+pub enum AcknowledgeCode10 {
+  Accepted = 0,
+  NotDisplayed = 1,
+  TerminalNotAvailable = 2,
+}
+singleformat_enum!{AcknowledgeCode10, Bin}
 
 // TODO: ACKC13
 // How to deal with 11-127 being reserved but the rest being open for user values?
@@ -3680,6 +3706,32 @@ pub enum TableElement {
 }
 multiformat_vec!{TableElement, List, Bin, Bool, Ascii, Jis8, I1, I2, I4, I8, U1, U2, U4, U8, F4, F8}
 
+/// ## TEXT
+///
+/// **Text String**
+///
+/// Line of characters used for terminal display messages.
+///
+/// -------------------------------------------------------------------------
+///
+/// #### Used By
+///
+/// - S10F1, S10F3, S10F5, S10F9
+#[derive(Clone, Debug)]
+pub enum Text {
+  Bin(Vec<u8>),
+  Ascii(Vec<Char>),
+  I1(Vec<i8>),
+  I2(Vec<i16>),
+  I4(Vec<i32>),
+  I8(Vec<i64>),
+  U1(Vec<u8>),
+  U2(Vec<u16>),
+  U4(Vec<u32>),
+  U8(Vec<u64>),
+}
+multiformat_vec!{Text, Bin, Ascii, I1, I2, I4, I8, U1, U2, U4, U8}
+
 /// ## TIAACK
 /// 
 /// Equipment acknowledge code, 1 byte.
@@ -3783,6 +3835,21 @@ singleformat_enum!{TimeAcknowledgeCode, Bin}
 #[derive(Clone, Debug)]
 pub struct Time(pub Vec<Char>);
 singleformat_vec!{Time, Ascii}
+
+/// ## TID
+///
+/// **Terminal ID**
+///
+/// Terminal identifier, 1 byte.
+///
+/// -------------------------------------------------------------------------
+///
+/// #### Used By
+///
+/// - S10F1, S10F3, S10F5, S10F7
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct TerminalID(pub u8);
+singleformat!{TerminalID, Bin}
 
 /// ## TOTSMP
 /// 
